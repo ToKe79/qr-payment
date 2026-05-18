@@ -110,7 +110,7 @@ export function ApiCard() {
             <IconArrowRight className="size-3.5" />
           </a>
           <span className="text-[10px] text-muted-foreground">
-            free &middot; no auth &middot; 20 req/min
+            free &middot; no auth &middot; 60 req/min
           </span>
         </div>
 
