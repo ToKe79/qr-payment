@@ -14,12 +14,7 @@ import {
   InvalidIBANError,
 } from "@/features/payment/qr-generator";
 import type { PaymentFormData } from "@/features/payment/schema";
-
-interface ShareBranding {
-  fgColor: string;
-  bgColor: string;
-  centerText: string;
-}
+import type { ShareBranding } from "@/features/payment/share-link";
 
 interface Props {
   payment: PaymentFormData;
@@ -32,19 +27,20 @@ export function ShareQRSection({ payment, branding, children }: Props) {
   const t = useTranslations("QRPreview");
 
   useEffect(() => {
-    track("share_page_viewed", {
-      format: payment.format ?? "bysquare",
-      has_amount: payment.amount > 0,
-    });
-  }, [payment.format, payment.amount]);
-
-  useEffect(() => {
+    let cancelled = false;
     generatePaymentQR(payment, {
       ...branding,
       logo: null,
     })
-      .then(setQrDataUrl)
+      .then((result) => {
+        if (!cancelled) {
+          setQrDataUrl(result);
+        }
+      })
       .catch((error) => {
+        if (cancelled) {
+          return;
+        }
         const message =
           error instanceof InvalidIBANError
             ? error.message
@@ -54,6 +50,9 @@ export function ShareQRSection({ payment, branding, children }: Props) {
         });
         toast.error(message);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [payment, branding, t]);
 
   const handleDownload = () => {
@@ -89,7 +88,7 @@ export function ShareQRSection({ payment, branding, children }: Props) {
 
   return (
     <>
-      <CardContent className="flex flex-col items-center gap-4">
+      <CardContent className="flex flex-col items-center gap-4 py-4">
         {qrDataUrl ? (
           <div
             className="w-full p-2"
@@ -111,12 +110,16 @@ export function ShareQRSection({ payment, branding, children }: Props) {
         {children}
       </CardContent>
       {qrDataUrl ? (
-        <CardFooter className="gap-2">
-          <Button className="flex-1" onClick={handleDownload} variant="outline">
+        <CardFooter className="divide-x divide-border p-0">
+          <Button
+            className="h-12 flex-1"
+            onClick={handleDownload}
+            variant="ghost"
+          >
             <IconDownload />
             {t("download")}
           </Button>
-          <Button className="flex-1" onClick={handleCopy} variant="outline">
+          <Button className="h-12 flex-1" onClick={handleCopy} variant="ghost">
             <IconCopy />
             {t("copy")}
           </Button>

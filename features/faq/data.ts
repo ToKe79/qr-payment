@@ -1,7 +1,12 @@
+import type { ComponentProps } from "react";
+import type { Link } from "@/i18n/navigation";
+
+type LinkHref = ComponentProps<typeof Link>["href"];
+
 interface FaqItem {
   question: string;
   answer: string;
-  links?: Array<{ label: string; href: string }>;
+  links?: Array<{ label: string; href: LinkHref }>;
 }
 
 const faqData: Record<string, FaqItem[]> = {
@@ -14,7 +19,13 @@ const faqData: Record<string, FaqItem[]> = {
     {
       question: "Ako to funguje?",
       answer:
-        "Zadáte platobné údaje (IBAN, sumu, variabilný symbol a pod.), kliknete na Vygenerovať a získate QR kód. Ten naskenujete bankovou aplikáciou a platba sa automaticky vyplní.",
+        "Zadáte platobné údaje (IBAN, meno príjemcu, sumu, variabilný symbol a pod.), kliknete na Vygenerovať a získate QR kód. Ten naskenujete bankovou aplikáciou a platba sa automaticky vyplní.",
+      links: [
+        {
+          label: "Návod: Ako vytvoriť QR kód na platbu",
+          href: "/ako-vytvorit-qr-kod-na-platbu",
+        },
+      ],
     },
     {
       question: "Je to zadarmo?",
@@ -24,7 +35,7 @@ const faqData: Record<string, FaqItem[]> = {
     {
       question: "Sú moje údaje v bezpečí?",
       answer:
-        "Áno. Všetky údaje sa spracúvajú priamo vo vašom prehliadači a nikdy neopúšťajú vaše zariadenie. Nepoužívame cookies, nezbierame osobné údaje a nemáme žiadnu databázu.",
+        "Áno. Platobné údaje sa vo webovej aplikácii spracúvajú priamo vo vašom prehliadači a neopúšťajú vaše zariadenie, ani pri zdieľaní odkazom. Na server ide len anonymný signál pre počítadlo vygenerovaných kódov. Nepoužívame sledovacie cookies a platobné údaje nikde neukladáme.",
     },
     {
       question: "S ktorými bankami to funguje?",
@@ -35,16 +46,22 @@ const faqData: Record<string, FaqItem[]> = {
       question: "Aký je rozdiel medzi BySquare, EPC QR a SPAYD?",
       answer:
         "BySquare je slovenský štandard pre platobné QR kódy - podporuje variabilný, špecifický a konštantný symbol. SPAYD (QR Platba) je český štandard s rovnakými symbolmi, ale v inom formáte. EPC QR (European Payments Council) je európsky SEPA štandard, ktorý funguje naprieč krajinami EÚ, ale nepodporuje české a slovenské symboly. Na platby na Slovensku použite BySquare, na platby v Česku SPAYD a na medzinárodné SEPA platby EPC QR.",
+      links: [
+        {
+          label: "SEPA QR kód generátor (EPC QR)",
+          href: "/sepa-qr-code-generator",
+        },
+      ],
     },
     {
       question: "Čo je SPAYD (QR Platba)?",
       answer:
-        "SPAYD (QR Platba) je český štandard pre platobné QR kódy zavedený Českou bankovnou asociáciou. Formát SPD (Short Payment Descriptor) podporujú všetky české banky - Air Bank, Česká spořitelna, ČSOB, Fio banka, Komerční banka, Raiffeisenbank, mBank a ďalšie. QR Platby tento formát plne podporuje.",
+        "SPAYD (QR Platba) je český štandard pre platobné QR kódy zavedený Českou bankovou asociáciou. Formát SPD (Short Payment Descriptor) podporujú všetky české banky - Air Bank, Česká spořitelna, ČSOB, Fio banka, Komerční banka, Raiffeisenbank, mBank a ďalšie. QR Platby tento formát plne podporuje.",
     },
     {
       question: "Môžem si QR kód upraviť?",
       answer:
-        "Áno. Môžete zmeniť farbu QR kódu a pozadia, vybrať štýl bodov (štvorce, zaoblené, kruhy alebo elegantné), pridať text do stredu alebo vlastné logo. Všetky úpravy sú viditeľné v reálnom čase. Nastavenia si môžete uložiť ako šablónu pre opakované použitie.",
+        "Áno. Môžete zmeniť farbu QR kódu a pozadia vrátane gradientov, vybrať štýl bodov (štvorce, zaoblené, kruhy alebo elegantné), pridať text do stredu, vlastné logo alebo rám. Všetky úpravy sú viditeľné v reálnom čase. Nastavenia si môžete uložiť ako šablónu pre opakované použitie.",
     },
     {
       question: "Čo je hromadné generovanie?",
@@ -55,18 +72,7 @@ const faqData: Record<string, FaqItem[]> = {
     {
       question: "Ako môžem zdieľať platbu?",
       answer:
-        "Kliknite na tlačidlo Zdieľať link a skopírujte odkaz. Odkaz obsahuje všetky platobné údaje vrátane IBAN, sumy, symbolov, poznámky a vzhľadu QR kódu. Príjemca po otvorení odkazu uvidí stránku s QR kódom, ktorý naskenuje bankovou aplikáciou.",
-    },
-    {
-      question: "Je dostupné API?",
-      answer:
-        "Áno. QR Platby ponúka bezplatné REST API bez nutnosti API kľúča. Môžete ho integrovať do vlastnej aplikácie, chatbota alebo workflow. API podporuje všetky tri formáty - BySquare, EPC QR aj SPAYD. Limit je 20 požiadaviek za minútu.",
-      links: [{ label: "Zobrazit API dokumentáciu", href: "/docs" }],
-    },
-    {
-      question: "Funguje to offline?",
-      answer:
-        "Čiastočne. Po prvom načítaní stránky môžete generovať QR kódy aj bez internetového pripojenia. História platieb a nastavenia sa ukladajú lokálne vo vašom prehliadači.",
+        "Kliknite na tlačidlo Zdieľať link a skopírujte odkaz. Odkaz obsahuje všetky platobné údaje vrátane IBAN, sumy, symbolov a poznámky a základné farby QR kódu. Logo, gradienty a rám sa neprenášajú. Príjemca po otvorení odkazu uvidí stránku s QR kódom, ktorý naskenuje bankovou aplikáciou.",
     },
   ],
   en: [
@@ -78,7 +84,13 @@ const faqData: Record<string, FaqItem[]> = {
     {
       question: "How does it work?",
       answer:
-        "Enter payment details (IBAN, amount, variable symbol, etc.), click Generate, and you get a QR code. Scan it with your banking app and the payment fills in automatically.",
+        "Enter payment details (IBAN, recipient name, amount, variable symbol, etc.), click Generate, and you get a QR code. Scan it with your banking app and the payment fills in automatically.",
+      links: [
+        {
+          label: "Guide: How to create a payment QR code",
+          href: "/ako-vytvorit-qr-kod-na-platbu",
+        },
+      ],
     },
     {
       question: "Is it free?",
@@ -88,7 +100,7 @@ const faqData: Record<string, FaqItem[]> = {
     {
       question: "Is my data safe?",
       answer:
-        "Yes. All data is processed directly in your browser and never leaves your device. We don't use cookies, don't collect personal data, and don't have any database.",
+        "Yes. In the web app your payment data is processed directly in your browser and never leaves your device, share links included. The server only receives an anonymous signal for the counter of generated codes. We don't use tracking cookies and we don't store payment data anywhere.",
     },
     {
       question: "Which banks does it work with?",
@@ -99,6 +111,12 @@ const faqData: Record<string, FaqItem[]> = {
       question: "What is the difference between BySquare, EPC QR, and SPAYD?",
       answer:
         "BySquare is the Slovak standard for payment QR codes - it supports variable, specific, and constant symbols. SPAYD (QR Platba) is the Czech standard with the same symbols but in a different format. EPC QR (European Payments Council) is a European SEPA standard that works across EU countries but does not support Czech and Slovak symbols. For payments within Slovakia, use BySquare. For payments within Czech Republic, use SPAYD. For international SEPA payments, choose EPC QR.",
+      links: [
+        {
+          label: "SEPA QR code generator (EPC QR)",
+          href: "/sepa-qr-code-generator",
+        },
+      ],
     },
     {
       question: "What is SPAYD (QR Platba)?",
@@ -108,7 +126,7 @@ const faqData: Record<string, FaqItem[]> = {
     {
       question: "Can I customize the QR code?",
       answer:
-        "Yes. You can change the QR code and background colors, choose a dot style (square, rounded, circles, or classy), and add center text or your own logo. All changes are visible in real time. You can also save your customization settings as a template for reuse.",
+        "Yes. You can change the QR code and background colors, gradients included, choose a dot style (square, rounded, circles, or classy), and add center text, your own logo or a frame. All changes are visible in real time. You can also save your customization settings as a template for reuse.",
     },
     {
       question: "What is bulk generation?",
@@ -119,18 +137,7 @@ const faqData: Record<string, FaqItem[]> = {
     {
       question: "How can I share a payment?",
       answer:
-        "Click the Share link button and copy the link. The link contains all payment details including IBAN, amount, symbols, note, and QR code appearance. The recipient will see a page with the QR code that they can scan using their banking app.",
-    },
-    {
-      question: "Is there an API available?",
-      answer:
-        "Yes. QR Platby offers a free REST API with no API key required. You can integrate it into your own app, chatbot, or workflow. The API supports all three formats - BySquare, EPC QR, and SPAYD. The rate limit is 20 requests per minute.",
-      links: [{ label: "View API documentation", href: "/docs" }],
-    },
-    {
-      question: "Does it work offline?",
-      answer:
-        "Partially. After the first page load, you can generate QR codes even without an internet connection. Payment history and settings are stored locally in your browser.",
+        "Click the Share link button and copy the link. The link contains all payment details including IBAN, amount, symbols and note, and the basic colors of the QR code. The logo, gradients and frame are not carried over. The recipient will see a page with the QR code that they can scan using their banking app.",
     },
   ],
   cs: [
@@ -143,6 +150,12 @@ const faqData: Record<string, FaqItem[]> = {
       question: "Jak vytvořit QR kód pro platbu?",
       answer:
         "Zadejte platební údaje (IBAN, částku, variabilní symbol apod.), klikněte na Vygenerovat a získáte QR kód. Ten naskenujete bankovní aplikací a platba se automaticky vyplní. Můžete zvolit formát SPAYD pro české platby, BySquare pro slovenské nebo EPC QR pro mezinárodní SEPA převody.",
+      links: [
+        {
+          label: "Návod: Jak vytvořit QR kód pro platbu",
+          href: "/ako-vytvorit-qr-kod-na-platbu",
+        },
+      ],
     },
     {
       question: "Je to zdarma?",
@@ -152,7 +165,7 @@ const faqData: Record<string, FaqItem[]> = {
     {
       question: "Jsou moje údaje v bezpečí?",
       answer:
-        "Ano. Všechny údaje se zpracovávají přímo ve vašem prohlížeči a nikdy neopouštějí vaše zařízení. Nepoužíváme cookies, neshromažďujeme osobní údaje a nemáme žádnou databázi.",
+        "Ano. Platební údaje se ve webové aplikaci zpracovávají přímo ve vašem prohlížeči a neopouštějí vaše zařízení, ani při sdílení odkazem. Na server jde jen anonymní signál pro počítadlo vygenerovaných kódů. Nepoužíváme sledovací cookies a platební údaje nikde neukládáme.",
     },
     {
       question: "Které banky podporují QR platbu?",
@@ -168,11 +181,17 @@ const faqData: Record<string, FaqItem[]> = {
       question: "Jaký je rozdíl mezi SPAYD, BySquare a EPC QR?",
       answer:
         "SPAYD (QR Platba) je český standard pro platební QR kódy - podporuje variabilní, specifický a konstantní symbol. BySquare je slovenský standard se stejnými symboly, ale v jiném formátu. EPC QR (European Payments Council) je evropský SEPA standard, který funguje napříč zeměmi EU, ale nepodporuje české a slovenské symboly. Pro platby v Česku použijte SPAYD, pro platby na Slovensku BySquare a pro mezinárodní SEPA platby EPC QR.",
+      links: [
+        {
+          label: "SEPA QR kód generátor (EPC QR)",
+          href: "/sepa-qr-code-generator",
+        },
+      ],
     },
     {
       question: "Můžu si QR kód upravit?",
       answer:
-        "Ano. Můžete změnit barvu QR kódu a pozadí, vybrat styl bodů (čtverce, zaoblené, kruhy nebo elegantní), přidat text do středu nebo vlastní logo. Všechny úpravy jsou viditelné v reálném čase. Nastavení si můžete uložit jako šablonu pro opakované použití.",
+        "Ano. Můžete změnit barvu QR kódu a pozadí včetně gradientů, vybrat styl bodů (čtverce, zaoblené, kruhy nebo elegantní), přidat text do středu, vlastní logo nebo rám. Všechny úpravy jsou viditelné v reálném čase. Nastavení si můžete uložit jako šablonu pro opakované použití.",
     },
     {
       question: "Co je hromadné generování?",
@@ -183,18 +202,7 @@ const faqData: Record<string, FaqItem[]> = {
     {
       question: "Jak můžu sdílet platbu?",
       answer:
-        "Klikněte na tlačítko Sdílet link a zkopírujte odkaz. Odkaz obsahuje všechny platební údaje včetně IBAN, částky, symbolů, poznámky a vzhledu QR kódu. Příjemce po otevření odkazu uvidí stránku s QR kódem, který naskenuje bankovní aplikací.",
-    },
-    {
-      question: "Je k dispozici API?",
-      answer:
-        "Ano. QR Platby nabízí bezplatné REST API bez nutnosti API klíče. Můžete ho integrovat do vlastní aplikace, chatbota nebo workflow. API podporuje všechny tři formáty - BySquare, EPC QR i SPAYD. Limit je 20 požadavků za minutu.",
-      links: [{ label: "Zobrazit API dokumentaci", href: "/docs" }],
-    },
-    {
-      question: "Funguje to offline?",
-      answer:
-        "Částečně. Po prvním načtení stránky můžete generovat QR kódy i bez internetového připojení. Historie plateb a nastavení se ukládají lokálně ve vašem prohlížeči.",
+        "Klikněte na tlačítko Sdílet link a zkopírujte odkaz. Odkaz obsahuje všechny platební údaje včetně IBAN, částky, symbolů a poznámky a základní barvy QR kódu. Logo, gradienty a rám se nepřenášejí. Příjemce po otevření odkazu uvidí stránku s QR kódem, který naskenuje bankovní aplikací.",
     },
   ],
 };

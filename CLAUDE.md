@@ -52,6 +52,8 @@ features/payment/         # Payment feature module
   epc-encoder.ts          # EPC QR payload encoder (EU SEPA)
   spayd-encoder.ts        # SPAYD payload encoder (Czech standard)
   share-link.ts           # Compact base64url share link encode/decode
+  optional-fields.ts      # Per-format optional fields config (due date, invoice ID, BIC, reference, purpose code, instant payment)
+  optional-fields-store.ts # Zustand store of opted-in optional fields per format (qrPayments.optionalFields.v1)
   use-payment-generator.ts # Form submission hook
   resize-qr.ts            # `resizePngDataUrl` (download path) + `resizePngToBlob` (copy/share path) - canvas resize honoring customizer.downloadSize
   qr-shared.ts            # Shared QR primitives - `loadImage`, `getEyeStyles`, `getLogoSrc`, font/size maps
@@ -72,6 +74,10 @@ features/customizer/      # Unified QR customizer (home sheet + /studio page)
   guardrails.ts           # checkGuardrails (logo cap, low contrast, weak gradient) for live customizer feedback
   scannability.ts         # validateScannability (jsQR round-trip; jsqr is dynamic-imported)
   components/             # Shared customizer UI (color/dot/text/logo/frame controls + sheet + templates)
+features/reader/          # Payment QR reader page (/citacka-qr-platby)
+  decode-payload.ts       # QR text -> PaymentFormData for bysquare, SPAYD, EPC, with warnings (bun test alongside)
+  read-qr-image.ts        # Image file -> QR text via jsQR (dynamic import)
+features/stats/           # Usage counters (client island reading /api/v1/stats)
 features/feedback/        # Feature request / feedback module
 features/faq/             # FAQ data (translated)
 features/docs/            # API docs page components
@@ -81,9 +87,10 @@ lib/api/                  # API utilities
   rate-limiter.ts         # Upstash Redis rate limiting (sliding window)
   qr-schema.ts            # Zod schema + TypeScript types for API
   qr-docs.ts              # Machine-readable API documentation
+  stats.ts                # Usage counters in Upstash Redis (increment + read)
   cors.ts                 # CORS headers
 lib/utils.ts              # Utility functions (cn, maskIban)
-lib/seo.ts                # SEO utilities (canonical, hreflang alternates)
+lib/seo.ts                # SEO utilities (canonical, hreflang alternates, FAQPage + BreadcrumbList JSON-LD; render with components/json-ld.tsx)
 env.ts                    # T3 env validation
 messages/{sk,en,cs}.json  # Translation files (namespaced keys)
 docs/
@@ -153,17 +160,38 @@ This project uses Ultracite (Biome preset) for formatting and linting. Key rules
 - **No analytics on navigation Links**: Don't add `track()` to `onClick` of `<Link>` for route navigation. Track real interactions (form submits, dialog actions, downloads) instead.
 - **Zustand `onRehydrateStorage` does not auto-persist**: Mutating state inside the callback only updates in-memory state. If you also remove legacy localStorage keys there, a user closing the tab before any setState loses everything. Either keep migration idempotent (don't remove old keys) or trigger a setState after migration.
 - **Persisted union fields need `.includes()` validation in migration, not `??=`**: `??=` only fills `undefined`. A stale value from a previous release (`downloadSize: "huge"`) survives and crashes downstream lookups (`DOWNLOAD_SIZE_PX[value]`). Pattern: `if (!ALLOWED_VALUES.includes(config.field)) { config.field = DEFAULT.field; }` - see `migrateConfig` in `features/customizer/store.ts`.
-- **Customizer renderer scope**: `renderCustomizerQR` (`features/customizer/renderer.ts`) only powers `/studio` preview and the home customizer sheet. Bulk export and `/api/v1/qr` use `generatePaymentQRServer` (no gradients/logos/frames) — don't pipe customizer config into those paths.
+- **Renderer scope**: the home form, the customizer sheet and `/studio` render through `renderCustomizerQR` (`features/customizer/renderer.ts`): gradients, logo, frame. Bulk export uses the client `generatePaymentQR` with basic branding (colors, center text). `/api/v1/qr` uses `generatePaymentQRServer` with colors only. Don't pipe the full customizer config into bulk or the API.
+- **Share links carry the payment in the URL fragment** (`/p#d=...`), decoded in the browser by `app/[locale]/p/shared-payment.tsx`. Never move it back to the query: the privacy policy promises the server does not see it. Old `?d=` links are still read, and `components/analytics.tsx` strips that query before a pageview is sent.
 - **`useTransition` swallows thrown errors** — async callbacks inside `startTransition(async () => ...)` silently drop rejections. Always wrap the body in `try/catch` with `console.error` + `toast.error`. React does not surface the failure anywhere otherwise.
 - **Data URL downloads — use `<a href={dataUrl}>` directly**. Don't `fetch(dataUrl)` → `blob` → `createObjectURL`; data URLs are already in-memory and the round-trip adds latency with zero benefit. Pattern: `link.href = dataUrl; link.download = name; link.click()`.
 - **Clipboard / Web Share from a canvas — use `canvas.toBlob()` directly**. Don't go via `canvas.toDataURL` then `fetch(dataUrl).blob()`; that's a full PNG encode + decode + re-encode for nothing. `features/payment/resize-qr.ts` exposes `resizePngToBlob` for this; mirror the split if you add another export path.
+
+## Optional Payment Fields
+
+Users opt into extra fields per format through the Fields menu in the payment form. Adding one requires keeping these in sync:
+- `features/payment/optional-fields.ts` - field config and the list of formats that support it
+- `features/payment/schema.ts` - form validation
+- `features/payment/qr-payload.ts` and the format's encoder - the field must reach the QR payload
+- `features/payment/share-link.ts` - a compact key, encoded and decoded
+- `features/payment/store.ts` - `fingerprintExtras`, otherwise history merges payments that differ only in this field
+- `features/payment/components/payment-form-card.tsx` - `defaultValues`
+- `messages/{sk,en,cs}.json` - `PaymentForm.<labelKey>`
+
+Then follow "API Changes" below.
+
+## Locale Routing
+
+`proxy.ts` picks the locale by country before browser language. Visitors from SK get `sk` and visitors from CZ get `cs`, read from the `x-vercel-ip-country` header. Everyone else falls back to next-intl's `Accept-Language` detection. A locale prefix in the URL or a `NEXT_LOCALE` cookie always wins.
+
+Routes are listed in `pathnames` in `i18n/routing.ts`, so `Link` hrefs are typed. A new page needs an entry there, and may give each locale its own slug (the SEO landing pages and the QR reader do). `localePath` in `lib/seo.ts` resolves the localized slug for canonical and hreflang URLs.
+
+Pages are prerendered per locale. `app/[locale]/layout.tsx` is the root layout and `i18n/request.ts` reads the locale from `next/root-params`, so there is no `setRequestLocale`. Don't add an `app/layout.tsx` above it and don't call `headers()` or `cookies()` in shared layouts: either one turns every page dynamic. Route handlers and server actions can't read root params, so pass the locale explicitly there (`getTranslations({ locale })`).
 
 ## Customizer Guardrails
 
 Guardrails surface scannability risks live in the customizer (`features/customizer/guardrails.ts`). Adding one requires keeping these in sync:
 - `features/customizer/guardrails.ts` - add the key to the `GuardrailKey` union and a check in `checkGuardrails`
 - `messages/{sk,en,cs}.json` - translate `Branding.guardrail.<name>`
-- `docs/analytics-events.json` - append the key to `guardrail_warning_shown.properties.key`
 
 Severity `"warning"` disables the home customizer Done button (via `useGuardrails`); `"info"` is non-blocking guidance. Don't surface raw technical metrics (contrast ratios, thresholds) in the message text - keep copy actionable.
 

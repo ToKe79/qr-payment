@@ -2,9 +2,7 @@ import { electronicFormatIBAN } from "ibantools";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { PaymentFormat } from "./format";
-import type { PaymentRecord } from "./schema";
-
-type Currency = "EUR" | "CZK";
+import type { Currency, PaymentFormData, PaymentRecord } from "./schema";
 
 interface PaymentHistoryState {
   current: PaymentRecord | null;
@@ -19,6 +17,8 @@ interface PaymentHistoryActions {
   setPreferredCurrency: (currency: Currency) => void;
   saveToStorage: () => void;
   loadFromStorage: (id: string) => void;
+  /** Fills the form with a payment from outside (the QR reader), without a QR or a history entry. */
+  openInForm: (payment: PaymentFormData) => void;
   removeFromStorage: (id: string) => void;
   clearHistory: () => void;
   clearCurrent: () => void;
@@ -33,50 +33,104 @@ type PaymentHistoryStore = PaymentHistoryState & {
   actions: PaymentHistoryActions;
 };
 
+function fingerprintIban(payment: PaymentRecord): string {
+  return electronicFormatIBAN(payment.iban) || payment.iban;
+}
+
+function fingerprintAmount(payment: PaymentRecord): string {
+  return (payment.amount || 0).toFixed(2);
+}
+
+function fingerprintOptional(value: string | undefined): string {
+  return value || "";
+}
+
+function fingerprintSymbols(payment: PaymentRecord): string[] {
+  return [
+    fingerprintOptional(payment.variableSymbol),
+    fingerprintOptional(payment.specificSymbol),
+    fingerprintOptional(payment.constantSymbol),
+    fingerprintOptional(payment.recipientName),
+    fingerprintOptional(payment.paymentNote),
+  ];
+}
+
+/** Opt-in fields (see optional-fields.ts); unset ones collapse to "". */
+function fingerprintExtras(payment: PaymentRecord): string[] {
+  return [
+    fingerprintOptional(payment.paymentDueDate),
+    fingerprintOptional(payment.invoiceId),
+    fingerprintOptional(payment.spaydReference),
+    fingerprintOptional(payment.purposeCode),
+    payment.instantPayment ? "ip" : "",
+  ];
+}
+
+function buildEpcFingerprint(
+  payment: PaymentRecord,
+  iban: string,
+  amount: string
+): string {
+  return [
+    "epc",
+    iban,
+    amount,
+    fingerprintOptional(payment.bic),
+    fingerprintOptional(payment.recipientName),
+    fingerprintOptional(payment.paymentNote),
+    ...fingerprintExtras(payment),
+  ].join("|");
+}
+
+function buildSpaydFingerprint(
+  payment: PaymentRecord,
+  iban: string,
+  amount: string
+): string {
+  return [
+    "spayd",
+    iban,
+    amount,
+    payment.currency ?? "CZK",
+    ...fingerprintSymbols(payment),
+    fingerprintOptional(payment.bic),
+    ...fingerprintExtras(payment),
+  ].join("|");
+}
+
+function buildBysquareFingerprint(
+  payment: PaymentRecord,
+  iban: string,
+  amount: string
+): string {
+  return [
+    "bysquare",
+    iban,
+    amount,
+    payment.currency ?? "EUR",
+    ...fingerprintSymbols(payment),
+    fingerprintOptional(payment.bic),
+    ...fingerprintExtras(payment),
+  ].join("|");
+}
+
 /**
  * Creates a fingerprint for deduplication based on payment-identifying fields.
  * Two payments with same fingerprint are considered duplicates.
  */
 function getPaymentFingerprint(payment: PaymentRecord): string {
   const format = payment.format ?? "bysquare";
-  const iban = electronicFormatIBAN(payment.iban) || payment.iban;
+  const iban = fingerprintIban(payment);
+  const amount = fingerprintAmount(payment);
 
-  if (format === "epc") {
-    return [
-      "epc",
-      iban,
-      (payment.amount || 0).toFixed(2),
-      payment.bic || "",
-      payment.recipientName || "",
-      payment.paymentNote || "",
-    ].join("|");
+  switch (format) {
+    case "epc":
+      return buildEpcFingerprint(payment, iban, amount);
+    case "spayd":
+      return buildSpaydFingerprint(payment, iban, amount);
+    default:
+      return buildBysquareFingerprint(payment, iban, amount);
   }
-
-  if (format === "spayd") {
-    return [
-      "spayd",
-      iban,
-      (payment.amount || 0).toFixed(2),
-      payment.currency ?? "CZK",
-      payment.variableSymbol || "",
-      payment.specificSymbol || "",
-      payment.constantSymbol || "",
-      payment.recipientName || "",
-      payment.paymentNote || "",
-    ].join("|");
-  }
-
-  return [
-    "bysquare",
-    iban,
-    (payment.amount || 0).toFixed(2),
-    payment.currency ?? "EUR",
-    payment.variableSymbol || "",
-    payment.specificSymbol || "",
-    payment.constantSymbol || "",
-    payment.recipientName || "",
-    payment.paymentNote || "",
-  ].join("|");
 }
 
 /**
@@ -167,6 +221,16 @@ const paymentStore = create<PaymentHistoryStore>()(
             });
           }
         },
+        openInForm: (payment) =>
+          set({
+            current: {
+              ...payment,
+              id: crypto.randomUUID(),
+              createdAt: new Date().toISOString(),
+            },
+            preferredFormat: payment.format,
+            preferredCurrency: payment.currency ?? "EUR",
+          }),
         removeFromStorage: (id) =>
           set((state) => ({
             history: state.history.filter((p) => p.id !== id),

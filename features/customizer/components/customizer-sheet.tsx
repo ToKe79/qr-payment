@@ -9,7 +9,6 @@ import {
 import { track } from "@vercel/analytics";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -23,17 +22,32 @@ import { Link } from "@/i18n/navigation";
 import { useCustomizerActions } from "../store";
 import { useGuardrails } from "../use-guardrails";
 import { CustomizerControls } from "./customizer-controls";
+import { PresetButtons } from "./preset-buttons";
 import { TemplateSelector } from "./template-selector";
 
 interface CustomizerSheetProps {
   onApply: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const FOOTER_BUTTON_CLASS =
-  "flex-1 sm:h-10 sm:px-4 sm:text-sm sm:[&_svg:not([class*='size-'])]:size-4";
+  "h-12 flex-1 sm:px-4 sm:text-sm sm:[&_svg:not([class*='size-'])]:size-4";
 
-export function CustomizerSheet({ onApply }: CustomizerSheetProps) {
-  const [open, setOpen] = useState(false);
+export function CustomizerSheet({
+  onApply,
+  open: controlledOpen,
+  onOpenChange,
+}: CustomizerSheetProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (next: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(next);
+    }
+    onOpenChange?.(next);
+  };
   const actions = useCustomizerActions();
   const t = useTranslations("Branding");
   const guardrails = useGuardrails();
@@ -41,7 +55,7 @@ export function CustomizerSheet({ onApply }: CustomizerSheetProps) {
 
   return (
     <Sheet onOpenChange={setOpen} open={open}>
-      <SheetTrigger render={<Button size="sm" variant="ghost" />}>
+      <SheetTrigger render={<Button className="h-10" variant="ghost" />}>
         <IconPalette />
         {t("edit")}
       </SheetTrigger>
@@ -49,34 +63,37 @@ export function CustomizerSheet({ onApply }: CustomizerSheetProps) {
         className="w-full data-[side=left]:w-full data-[side=left]:sm:max-w-lg"
         side="left"
       >
-        <SheetHeader>
+        <SheetHeader className="h-12 flex-row items-center gap-0 border-b px-4 py-0">
           <SheetTitle>{t("dialogTitle")}</SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-1 flex-col gap-3 overflow-auto px-4 pb-4">
+        <div className="flex flex-1 flex-col overflow-auto">
+          <div className="border-b bg-card px-4 py-3">
+            <PresetButtons source="sheet" />
+          </div>
           <CustomizerControls />
-          <div className="mt-auto">
+          <div className="mt-auto border-b bg-card px-4 py-3">
             <TemplateSelector />
           </div>
         </div>
 
-        <SheetFooter className="gap-3 border-border border-t">
-          <Alert className="items-center px-2 py-1.5 sm:px-3 sm:py-2 sm:text-sm">
-            <IconAlertTriangle className="size-5 self-center" />
-            <AlertDescription className="sm:text-sm/relaxed">
-              {t("warning")}
-            </AlertDescription>
-          </Alert>
-          <div className="flex flex-row gap-2">
+        <SheetFooter className="gap-0 border-t p-0">
+          <output
+            aria-live="polite"
+            className="flex items-start gap-2 px-4 py-3 text-muted-foreground text-xs sm:text-sm/relaxed"
+          >
+            <IconAlertTriangle className="size-4 shrink-0 translate-y-0.5" />
+            <span>{t("warning")}</span>
+          </output>
+          <div className="flex flex-row divide-x divide-border border-t">
             <Button
               className={FOOTER_BUTTON_CLASS}
               onClick={() => {
                 actions.reset();
                 track("customizer_reset");
               }}
-              size="sm"
               type="button"
-              variant="outline"
+              variant="ghost"
             >
               <IconRefresh />
               {t("reset")}
@@ -88,18 +105,17 @@ export function CustomizerSheet({ onApply }: CustomizerSheetProps) {
                 onApply();
                 setOpen(false);
               }}
-              size="sm"
               type="button"
             >
               {t("done")}
             </Button>
           </div>
           <Link
-            className="inline-flex items-center justify-center gap-1 text-center text-muted-foreground text-xs underline-offset-2 hover:text-foreground hover:underline"
+            className="flex h-12 items-center justify-center gap-2 border-t bg-secondary px-4 text-secondary-foreground text-sm transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             href="/studio"
           >
             {t("openInStudio")}
-            <IconArrowRight className="size-3.5" />
+            <IconArrowRight className="size-4" />
           </Link>
         </SheetFooter>
       </SheetContent>

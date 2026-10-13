@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +29,12 @@ interface FormValues {
   constantSymbol: string;
   recipientName: string;
   paymentNote: string;
+  bic: string;
+  paymentDueDate: string;
+  invoiceId: string;
+  spaydReference: string;
+  purposeCode: string;
+  instantPayment: boolean;
   darkColor: string;
   lightColor: string;
   margin: string;
@@ -153,6 +160,12 @@ export function TryItForm() {
       constantSymbol: "",
       recipientName: "",
       paymentNote: "",
+      bic: "",
+      paymentDueDate: "",
+      invoiceId: "",
+      spaydReference: "",
+      purposeCode: "",
+      instantPayment: false,
       darkColor: "#000000",
       lightColor: "#ffffff",
       margin: "2",
@@ -376,6 +389,86 @@ export function TryItForm() {
                   />
                 )}
               />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="try-bic">
+                <Label>bic</Label>
+              </FieldLabel>
+              <Controller
+                control={control}
+                name="bic"
+                render={({ field }) => (
+                  <Input id="try-bic" placeholder="GIBASKBX" {...field} />
+                )}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="try-due">
+                <Label>paymentDueDate</Label>
+              </FieldLabel>
+              <Controller
+                control={control}
+                name="paymentDueDate"
+                render={({ field }) => (
+                  <Input id="try-due" type="date" {...field} />
+                )}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="try-invoice">
+                <Label>invoiceId</Label>
+              </FieldLabel>
+              <Controller
+                control={control}
+                name="invoiceId"
+                render={({ field }) => (
+                  <Input id="try-invoice" placeholder="2024001" {...field} />
+                )}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="try-spayd-ref">
+                <Label>spaydReference</Label>
+              </FieldLabel>
+              <Controller
+                control={control}
+                name="spaydReference"
+                render={({ field }) => (
+                  <Input
+                    id="try-spayd-ref"
+                    placeholder="1234567890"
+                    {...field}
+                  />
+                )}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="try-purpose">
+                <Label>purposeCode</Label>
+              </FieldLabel>
+              <Controller
+                control={control}
+                name="purposeCode"
+                render={({ field }) => (
+                  <Input id="try-purpose" placeholder="GDDS" {...field} />
+                )}
+              />
+            </Field>
+            <Field orientation="horizontal">
+              <Controller
+                control={control}
+                name="instantPayment"
+                render={({ field }) => (
+                  <Checkbox
+                    checked={field.value}
+                    id="try-instant"
+                    onCheckedChange={field.onChange}
+                  />
+                )}
+              />
+              <FieldLabel htmlFor="try-instant">
+                <Label>instantPayment</Label>
+              </FieldLabel>
             </Field>
             <Field>
               <FieldLabel htmlFor="try-size">

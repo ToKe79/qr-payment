@@ -1,4 +1,5 @@
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
+import { JsonLdScript } from "@/components/json-ld";
 import { Badge } from "@/components/ui/badge";
 import { linkVariants } from "@/components/ui/link";
 import { Separator } from "@/components/ui/separator";
@@ -10,7 +11,12 @@ import { Toc } from "@/features/docs/components/toc";
 import { TryItForm } from "@/features/docs/components/try-it-form";
 import { Link } from "@/i18n/navigation";
 import { DAILY_LIMIT, MINUTE_LIMIT } from "@/lib/api/rate-limiter";
-import { getAlternates, getOgLocale, localePath } from "@/lib/seo";
+import {
+  breadcrumbJsonLd,
+  getAlternates,
+  getOgLocale,
+  localePath,
+} from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -35,8 +41,6 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function DocsPage({ params }: Props) {
   const { locale } = await params;
-  setRequestLocale(locale);
-
   const t = await getTranslations({ locale, namespace: "Docs" });
 
   const t_nav = await getTranslations({ locale, namespace: "Nav" });
@@ -58,25 +62,6 @@ export default async function DocsPage({ params }: Props) {
       name: "QR Platby API",
       url: "https://qr-platby.com/api/v1/qr",
     },
-  };
-
-  const breadcrumbLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: t_nav("home"),
-        item: localePath(locale, "/"),
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: t("title"),
-        item: localePath(locale, "/docs"),
-      },
-    ],
   };
 
   return (
@@ -115,7 +100,7 @@ export default async function DocsPage({ params }: Props) {
               <CodeBlock
                 code={`curl -X POST https://qr-platby.com/api/v1/qr \\
   -H "Content-Type: application/json" \\
-  -d '{"iban":"SK3112000000198742637541","amount":25.50,"variableSymbol":"2024001"}'`}
+  -d '{"iban":"SK3112000000198742637541","amount":25.50,"variableSymbol":"2024001","recipientName":"Ján Novák"}'`}
                 language="curl"
               />
               <p className="text-muted-foreground text-xs">
@@ -175,7 +160,6 @@ export default async function DocsPage({ params }: Props) {
                 {t("parametersDesc")}
               </p>
               <ParameterTable />
-              <p className="text-muted-foreground text-xs">{t("epcNote")}</p>
             </section>
 
             {/* Response */}
@@ -195,6 +179,9 @@ export default async function DocsPage({ params }: Props) {
 }`}
                 language="json"
               />
+              <p className="text-muted-foreground text-sm">
+                {t("warningsNote")}
+              </p>
               <SectionHeading as="h3" id="response-error">
                 {t("responseError")}
               </SectionHeading>
@@ -339,16 +326,12 @@ Retry-After: 45  (only on 429)`}
         </div>
       </div>
 
-      {/* JSON-LD structured data - hardcoded content, safe to inject */}
-      <script
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data from hardcoded content
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        type="application/ld+json"
-      />
-      <script
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data from hardcoded content
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
-        type="application/ld+json"
+      <JsonLdScript data={jsonLd} />
+      <JsonLdScript
+        data={breadcrumbJsonLd(locale, t_nav("home"), {
+          name: t("title"),
+          path: "/docs",
+        })}
       />
     </div>
   );

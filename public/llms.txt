@@ -4,19 +4,22 @@
 
 ## Web App
 
-The web app lets users create QR codes for Slovak and Czech banking payments. All data stays in the browser (localStorage).
+The web app lets users create QR codes for Slovak and Czech banking payments. Payment data entered in the web app stays in the browser (localStorage); share links carry it in the URL fragment.
 
 - [Home - Generate QR Code](https://qr-platby.com): Single payment form with IBAN, amount, symbols, recipient, and note
 - [Bulk QR Generation](https://qr-platby.com/bulk): Upload CSV to generate QR codes in batch, export as PDF or ZIP
-- [FAQ (SK)](https://qr-platby.com/faq): Frequently asked questions about QR payments
-- [FAQ (EN)](https://qr-platby.com/en/faq): FAQ in English
-- [FAQ (CS)](https://qr-platby.com/cs/faq): FAQ in Czech
+- [How to Create a Payment QR Code](https://qr-platby.com/en/how-to-create-payment-qr-code): Step-by-step guide with format explainer and FAQ (SK: /ako-vytvorit-qr-kod-na-platbu, CS: /cs/jak-vytvorit-qr-kod-pro-platbu)
+- [SEPA QR Code Generator (EPC QR)](https://qr-platby.com/en/sepa-qr-code-generator): What EPC QR is, which EU banking apps scan it (SK/CS: /sepa-qr-kod-generator)
+- [Guides index](https://qr-platby.com/en/guides): All how-to and explainer pages (SK/CS: /navody)
+- [FAQ (SK)](https://qr-platby.com/#faq): Frequently asked questions about QR payments
+- [FAQ (EN)](https://qr-platby.com/en#faq): FAQ in English
+- [FAQ (CS)](https://qr-platby.com/cs#faq): FAQ in Czech
 
-Available in Slovak, English, and Czech (`/sk`, `/en`, `/cs` prefixes).
+Available in Slovak, English, and Czech (Slovak has no prefix; English and Czech use `/en` and `/cs`).
 
 ## Privacy
 
-All processing happens in the browser - no personal data collected. Payment history and settings are stored in localStorage only.
+In the web app, payment data is processed in the browser and is not sent to the server. Payment history and settings are stored in localStorage only. The server sees anonymous usage events, a counter ping per generated code, REST API requests (processed, not stored), and feature requests a user chooses to send, optionally with an email.
 
 ## API
 
@@ -25,16 +28,17 @@ Single REST endpoint for programmatic QR code generation. Free, no API key neede
 - [API Documentation (JSON)](https://qr-platby.com/api/v1/qr): `GET` returns machine-readable docs, `POST` generates QR codes
 - [OpenAPI Specification](https://qr-platby.com/openapi.json): OpenAPI 3.1 spec for the QR generation API
 - [Full API Reference](https://qr-platby.com/llms-full.txt): Complete parameters, response schemas, error codes, and examples
+- [Usage Stats](https://qr-platby.com/api/v1/stats): `GET` returns anonymous usage counters `{ total, last30Days, api }` - no auth, no PII
 
 ### Quick Example
 
 ```bash
 curl -X POST https://qr-platby.com/api/v1/qr \
   -H "Content-Type: application/json" \
-  -d '{"iban":"SK3112000000198742637541","amount":25.50,"variableSymbol":"2024001"}'
+  -d '{"iban":"SK3112000000198742637541","amount":25.50,"variableSymbol":"2024001","recipientName":"Ján Novák"}'
 ```
 
-Returns JSON with `success: true` and a `data` field containing a base64 PNG data URI of the QR code.
+Returns JSON with `success: true` and a `data` field containing a base64 PNG data URI of the QR code. A PAY by square request without `recipientName` still succeeds and adds a `warnings` array.
 
 ### Quick Example (SPAYD - Czech)
 
@@ -49,7 +53,7 @@ curl -X POST https://qr-platby.com/api/v1/qr \
 ```bash
 curl -X POST https://qr-platby.com/api/v1/qr \
   -H "Content-Type: application/json" \
-  -d '{"iban":"DE89370400440532013000","amount":100,"paymentFormat":"epc","recipientName":"Max Mustermann"}'
+  -d '{"iban":"DE89370400440532013000","amount":100,"paymentFormat":"epc","recipientName":"Max Mustermann","purposeCode":"GDDS"}'
 ```
 
 ### Rate Limits
@@ -66,6 +70,7 @@ curl -X POST https://qr-platby.com/api/v1/qr \
 - Supports Slovak (SK), Czech (CZ), and other EU IBANs
 - Currencies: EUR, CZK
 - Payment formats: bysquare (Slovak), spayd (Czech), epc (EU SEPA)
+- Optional payment fields: `variableSymbol`, `specificSymbol`, `constantSymbol`, `recipientName`, `paymentNote`, `bic` (all formats), `paymentDueDate` (YYYY-MM-DD; bysquare/spayd), `invoiceId` (bysquare), `spaydReference` (spayd), `instantPayment` (boolean; spayd), `purposeCode` (epc). Fields sent for an unsupported format are rejected.
 - Optional styling: `darkColor` / `lightColor` (hex `#RRGGBB` or `#RRGGBBAA`), `margin` (0-10), `errorCorrectionLevel` (`L`/`M`/`Q`/`H`)
 
 ## Source Code

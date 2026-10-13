@@ -7,13 +7,40 @@
         "currency": "EUR | CZK",
         "has_branding": "true if colors or center text differ from defaults",
         "has_logo": "true if a logo is set",
-        "fields_filled": "count of optional fields filled (0-6)"
+        "fields_filled": "count of optional fields filled (0-11)"
       },
       "source": "features/payment/use-payment-generator.ts"
     },
     "format_selected": {
       "description": "User switched the QR format (BySquare / EPC / SPAYD)",
       "properties": { "format": "bysquare | epc | spayd" },
+      "source": "features/payment/components/payment-form-card.tsx"
+    },
+    "qr_validation_failed": {
+      "description": "User pressed Generate but the payment form failed validation. Values are never sent",
+      "properties": {
+        "format": "bysquare | epc | spayd",
+        "fields": "comma-separated sorted names of the invalid fields, e.g. iban,recipientName"
+      },
+      "source": "features/payment/components/payment-form-card.tsx"
+    },
+    "format_tile_clicked": {
+      "description": "User clicked a format tile in the homepage explainer to select that format in the form",
+      "properties": { "format": "bysquare | epc | spayd" },
+      "source": "features/seo/format-tile-action.tsx"
+    },
+    "domestic_account_converted": {
+      "description": "User typed or pasted a Czech or Slovak account number (19-2000145399/0800) and the IBAN field converted it",
+      "properties": { "country": "CZ | SK" },
+      "source": "components/iban-autocomplete.tsx"
+    },
+    "optional_field_toggled": {
+      "description": "User showed or hid an optional payment field via the Fields menu",
+      "properties": {
+        "format": "bysquare | epc | spayd",
+        "field": "paymentDueDate | invoiceId | bic | spaydReference | purposeCode | instantPayment",
+        "enabled": "true if the field was turned on"
+      },
       "source": "features/payment/components/payment-form-card.tsx"
     }
   },
@@ -22,8 +49,9 @@
     "api_qr_generated": {
       "description": "QR code generated via the REST API",
       "properties": {
-        "format": "png | svg",
-        "hasAmount": "true if amount was provided"
+        "format": "png | svg (output image format)",
+        "payment_format": "bysquare | epc | spayd",
+        "has_amount": "true if amount was provided"
       },
       "source": "app/api/v1/qr/route.ts"
     }
@@ -34,7 +62,7 @@
       "description": "User downloaded the generated QR code as PNG. Fired from both home preview and studio.",
       "properties": {
         "size": "small (128px) | standard (256px) | document (512px) | print (1024px)",
-        "source": "studio (only when fired from /studio; absent from home)"
+        "source": "home | studio"
       },
       "source": "features/payment/components/qr-preview-card.tsx, features/studio/components/studio-preview.tsx"
     },
@@ -54,19 +82,28 @@
     }
   },
 
+  "reader": {
+    "qr_decoded": {
+      "description": "User read a QR code on the reader page. Payment values are never sent",
+      "properties": {
+        "source": "image | text",
+        "format": "bysquare | epc | spayd | none (reading failed)",
+        "error": "noQr | notPayment | readFailed, only when format is none"
+      },
+      "source": "features/reader/components/qr-reader.tsx"
+    },
+    "qr_decoded_opened": {
+      "description": "User opened a decoded payment in the generator form",
+      "properties": { "format": "bysquare | epc | spayd" },
+      "source": "features/reader/components/qr-reader.tsx"
+    }
+  },
+
   "share_link": {
     "share_link_copied": {
       "description": "User copied the shareable payment link from the share dialog",
       "properties": null,
       "source": "features/payment/components/share-link-dialog.tsx"
-    },
-    "share_page_viewed": {
-      "description": "Recipient opened the shared payment page",
-      "properties": {
-        "format": "bysquare | epc | spayd",
-        "has_amount": "true if amount > 0"
-      },
-      "source": "app/[locale]/p/share-qr-section.tsx"
     },
     "shared_qr_downloaded": {
       "description": "Recipient downloaded the QR code from the shared payment page",
@@ -81,11 +118,6 @@
   },
 
   "branding": {
-    "qr_branding_applied": {
-      "description": "User applied custom branding (colors, text, logo) to the QR code",
-      "properties": null,
-      "source": "features/payment/components/qr-preview-card.tsx"
-    },
     "logo_uploaded": {
       "description": "User uploaded a custom logo for the QR code center",
       "properties": null,
@@ -121,13 +153,18 @@
       "properties": { "style": "square | rounded | dots | classy-rounded" },
       "source": "features/customizer/components/dot-style-selector.tsx"
     },
-    "guardrail_warning_shown": {
-      "description": "Customizer configuration triggered a scannability guardrail (logo or center text too large, low contrast, or weak gradient). Fires once per warning key per session, not on every render.",
+    "customizer_preset_applied": {
+      "description": "User applied a starter preset (Classic / Bold / Sunset / Framed) from the home sheet or studio",
       "properties": {
-        "key": "logo_oversized | text_oversized | low_contrast | very_low_contrast | weak_gradient_fg | weak_gradient_bg",
-        "severity": "info | warning"
+        "preset": "classic | bold | sunset | framed",
+        "source": "sheet | studio"
       },
-      "source": "features/customizer/components/customizer-controls.tsx"
+      "source": "features/customizer/components/preset-buttons.tsx"
+    },
+    "customizer_nudge_clicked": {
+      "description": "User clicked the 'Add your logo' nudge to open the customizer sheet",
+      "properties": null,
+      "source": "features/payment/components/qr-preview-card.tsx"
     }
   },
 
@@ -214,21 +251,34 @@
       "properties": null,
       "source": "components/consent-banner.tsx"
     },
+    "support_link_clicked": {
+      "description": "User clicked the Buy me a coffee link",
+      "properties": { "placement": "footer | home" },
+      "source": "components/outbound-link.tsx"
+    },
+    "creator_link_clicked": {
+      "description": "User clicked the denysov.dev link (carries UTM parameters)",
+      "properties": { "placement": "footer" },
+      "source": "components/outbound-link.tsx"
+    },
+    "github_link_clicked": {
+      "description": "User clicked the GitHub contribute link",
+      "properties": { "placement": "footer" },
+      "source": "components/outbound-link.tsx"
+    },
+    "announcement_dismissed": {
+      "description": "User dismissed the announcement banner",
+      "properties": {
+        "id": "announcement id, e.g. optional-fields-payee-name"
+      },
+      "source": "components/announcement-banner.tsx"
+    },
     "announcement_changelog_clicked": {
       "description": "User clicked the 'Read changelog' link in the announcement banner",
-      "properties": { "id": "announcement id, e.g. api-styling-params" },
-      "source": "components/announcement-banner.tsx"
-    }
-  },
-
-  "qr_validation": {
-    "qr_scannability_checked": {
-      "description": "Studio preview decoded the rendered QR via jsQR and reported the result; fires on transition between states (ok / at-risk), not every render",
       "properties": {
-        "ok": "boolean",
-        "reason": "decode_failed | payload_mismatch | null"
+        "id": "announcement id, e.g. optional-fields-payee-name"
       },
-      "source": "features/studio/components/studio-preview.tsx"
+      "source": "components/announcement-banner.tsx"
     }
   }
 }

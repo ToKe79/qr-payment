@@ -1,16 +1,22 @@
 "use client";
 
-import { IconCopy, IconDownload, IconShare } from "@tabler/icons-react";
+import {
+  IconArrowRight,
+  IconCopy,
+  IconDownload,
+  IconShare,
+} from "@tabler/icons-react";
 import { track } from "@vercel/analytics";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardFooter,
   CardHeader,
@@ -82,16 +88,21 @@ function PaymentDetails({ paymentDetails }: { paymentDetails: PaymentRecord }) {
   );
 }
 
+const NUDGE_STORAGE_KEY = "qrCustomizer.nudge.v1";
+
 export function QRPreviewCard() {
   const current = useCurrentPayment();
   const { setCurrent } = usePaymentActions();
   const customizer = useCustomizerConfig();
   const t = useTranslations("QRPreview");
+  const tBranding = useTranslations("Branding");
   const cardRef = useRef<HTMLDivElement>(null);
   const prevQrRef = useRef<string | undefined>(undefined);
   const [downloadPending, startDownload] = useTransition();
   const [copyPending, startCopy] = useTransition();
   const [sharePending, startShare] = useTransition();
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [nudgeDismissed, setNudgeDismissed] = useState(true);
 
   useEffect(() => {
     if (current?.qrDataUrl && current.qrDataUrl !== prevQrRef.current) {
@@ -99,6 +110,25 @@ export function QRPreviewCard() {
     }
     prevQrRef.current = current?.qrDataUrl;
   }, [current?.qrDataUrl]);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(NUDGE_STORAGE_KEY);
+    setNudgeDismissed(stored === "dismissed");
+  }, []);
+
+  const nudgeVisible =
+    Boolean(current?.qrDataUrl) && !customizer.logo && !nudgeDismissed;
+
+  const dismissNudge = () => {
+    window.localStorage.setItem(NUDGE_STORAGE_KEY, "dismissed");
+    setNudgeDismissed(true);
+  };
+
+  const handleNudgeOpen = () => {
+    dismissNudge();
+    setSheetOpen(true);
+    track("customizer_nudge_clicked");
+  };
 
   const handleApplyBranding = async () => {
     if (!current) {
@@ -133,7 +163,7 @@ export function QRPreviewCard() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        track("qr_downloaded", { size });
+        track("qr_downloaded", { size, source: "home" });
         toast.success(t("downloaded"));
       } catch (error) {
         console.error("[QRPreviewCard] Failed to download QR image:", error);
@@ -195,20 +225,36 @@ export function QRPreviewCard() {
   };
 
   return (
-    <Card ref={cardRef}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>{t("title")}</CardTitle>
-          {current?.qrDataUrl ? (
-            <CustomizerSheet onApply={handleApplyBranding} />
+    <Card className="py-0" ref={cardRef}>
+      <CardHeader className="h-10 gap-0 border-b px-0">
+        <CardTitle className="flex h-full grow items-center gap-2 border-r px-4 py-2">
+          <span>{t("title")}</span>
+          {nudgeVisible ? (
+            <button
+              className="motion-safe:fade-in-0 motion-safe:slide-in-from-right-1 ml-auto flex h-6 items-center gap-1 border border-border bg-background px-2 font-normal text-foreground text-xs hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:animate-in"
+              onClick={handleNudgeOpen}
+              type="button"
+            >
+              {tBranding("nudgeAddLogo")}
+              <IconArrowRight className="size-3.5" />
+            </button>
           ) : null}
-        </div>
+        </CardTitle>
+        <CardAction>
+          {current?.qrDataUrl ? (
+            <CustomizerSheet
+              onApply={handleApplyBranding}
+              onOpenChange={setSheetOpen}
+              open={sheetOpen}
+            />
+          ) : null}
+        </CardAction>
       </CardHeader>
-      <CardContent className="flex h-full grow flex-col items-center justify-center">
+      <CardContent className="flex h-full grow flex-col items-center justify-center py-0 pb-0">
         {current?.qrDataUrl ? (
           <>
             <div
-              className="mb-4 w-full max-w-96 motion-safe:animate-qr-reveal"
+              className="mb-4 w-full grow motion-safe:animate-qr-reveal"
               key={current.qrDataUrl}
             >
               <Image
@@ -228,31 +274,31 @@ export function QRPreviewCard() {
         )}
       </CardContent>
       {current?.qrDataUrl ? (
-        <CardFooter className="mt-auto grid grid-cols-2 gap-2 sm:flex">
-          <ShareLinkDialog payment={current} />
+        <CardFooter className="mt-auto grid grid-cols-2 divide-x divide-border p-0 sm:flex">
           <Button
-            className="col-span-2 sm:col-span-1 sm:flex-1"
+            className="col-span-2 h-12 sm:col-span-1 sm:flex-1"
             isPending={downloadPending}
             onClick={handleDownload}
-            variant="outline"
+            variant="ghost"
           >
             {downloadPending ? null : <IconDownload />}
             {t("download")}
           </Button>
+          <ShareLinkDialog payment={current} />
           <Button
-            className="sm:flex-1"
+            className="h-12 sm:flex-1"
             isPending={sharePending}
             onClick={handleShare}
-            variant="outline"
+            variant="ghost"
           >
             {sharePending ? null : <IconShare />}
             {t("share")}
           </Button>
           <Button
-            className="sm:flex-1"
+            className="h-12 sm:flex-1"
             isPending={copyPending}
             onClick={handleCopy}
-            variant="outline"
+            variant="ghost"
           >
             {copyPending ? null : <IconCopy />}
             {t("copy")}

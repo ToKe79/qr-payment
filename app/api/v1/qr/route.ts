@@ -1,6 +1,7 @@
 import { track } from "@vercel/analytics/server";
-import type { CurrencyCode } from "bysquare";
-import { type NextRequest, NextResponse } from "next/server";
+import type { CurrencyCode } from "bysquare/pay";
+import { electronicFormatIBAN } from "ibantools";
+import { after, type NextRequest, NextResponse } from "next/server";
 import { EpcPayloadTooLargeError } from "@/features/payment/epc-encoder";
 import { InvalidIBANError } from "@/features/payment/qr-generator";
 import { generatePaymentQRServer } from "@/features/payment/qr-generator.server";
@@ -18,8 +19,26 @@ import {
   getClientIp,
   MINUTE_LIMIT,
 } from "@/lib/api/rate-limiter";
+import { incrementApiStats } from "@/lib/api/stats";
 
 export const runtime = "nodejs";
+
+const MISSING_PAYEE_NAME_WARNING =
+  "recipientName is missing. Slovak banks verify the payee name since October 2025, so the payer will have to type it in after scanning. Send the exact account holder name.";
+
+/**
+ * A PAY by square code without a payee name is still generated, with a
+ * warning. Rejecting it would break clients that send only an IBAN.
+ */
+function payeeNameWarning(
+  paymentFormat: string,
+  recipientName: string | undefined
+): { warnings?: string[] } {
+  if (paymentFormat !== "bysquare" || recipientName?.trim()) {
+    return {};
+  }
+  return { warnings: [MISSING_PAYEE_NAME_WARNING] };
+}
 
 const DOCS_URL = "https://qr-platby.com/en/docs";
 
@@ -33,7 +52,7 @@ export function GET() {
   });
 }
 
-export { corsOptions as OPTIONS };
+export const OPTIONS = corsOptions;
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
@@ -104,7 +123,7 @@ export async function POST(req: NextRequest) {
             path: issue.path.join("."),
             message: issue.message,
           })),
-          hint: "Required: iban (string). Optional: amount (number), currency (EUR|CZK), variableSymbol, specificSymbol, constantSymbol, recipientName, paymentNote, paymentFormat (bysquare|spayd|epc), format (png|svg), size (100-1000), darkColor (#RRGGBB or #RRGGBBAA), lightColor (#RRGGBB or #RRGGBBAA), margin (0-10), errorCorrectionLevel (L|M|Q|H).",
+          hint: "Required: iban (string). Optional: amount (number), currency (EUR|CZK), variableSymbol, specificSymbol, constantSymbol, recipientName, paymentNote, bic, paymentDueDate (YYYY-MM-DD; bysquare/spayd), invoiceId (bysquare), spaydReference (spayd, digits), purposeCode (epc), instantPayment (boolean; spayd), paymentFormat (bysquare|spayd|epc), format (png|svg), size (100-1000), darkColor (#RRGGBB or #RRGGBBAA), lightColor (#RRGGBB or #RRGGBBAA), margin (0-10), errorCorrectionLevel (L|M|Q|H).",
           docs: DOCS_URL,
           example: {
             iban: "SK3112000000198742637541",
@@ -141,20 +160,23 @@ export async function POST(req: NextRequest) {
 
     track("api_qr_generated", {
       format,
-      paymentFormat,
-      hasAmount: paymentData.amount != null,
+      payment_format: paymentFormat,
+      has_amount: paymentData.amount != null,
     }).catch((err) => {
       console.warn("[api/v1/qr] Analytics tracking failed:", err);
     });
+
+    after(() => incrementApiStats());
 
     return NextResponse.json(
       {
         success: true,
         data,
         format,
-        iban: paymentData.iban,
+        iban: electronicFormatIBAN(paymentData.iban) ?? paymentData.iban,
         ...(paymentData.amount != null && { amount: paymentData.amount }),
         currency,
+        ...payeeNameWarning(paymentFormat, paymentData.recipientName),
       } satisfies QrGenerationResponse,
       {
         status: 200,
@@ -207,7 +229,7 @@ export async function POST(req: NextRequest) {
           error: {
             code: "VALIDATION_ERROR",
             message: error.message,
-            hint: "Reduce the length of beneficiaryName or remittanceText to fit within EPC limits (331 bytes max).",
+            hint: "Reduce the length of recipientName or paymentNote to fit within EPC limits (331 bytes max).",
             docs: DOCS_URL,
           },
         } satisfies QrErrorResponse,

@@ -14,39 +14,57 @@
     "termsDescription": "Podmínky používání aplikace QR Platby.",
     "faqTitle": "Často kladené otázky",
     "faqDescription": "Odpovědi na nejčastější otázky o generátoru QR kódů pro platby.",
+    "guidesTitle": "Návody ke QR platbám",
+    "guidesDescription": "Postupy a vysvětlení k platebním QR kódům: jak je vytvořit, který formát zvolit a co podporují banky.",
+    "guideTitle": "Jak vytvořit QR kód pro platbu - návod krok za krokem",
+    "guideDescription": "Návod, jak zdarma vytvořit QR kód pro platbu z IBANu. Krok za krokem, bez registrace, funguje se všemi českými bankami. QR platba (SPAYD) i PAY by square.",
+    "sepaTitle": "SEPA QR kód generátor (EPC QR) - zdarma, bez registrace",
+    "sepaDescription": "Vytvořte EPC QR kód pro eurové SEPA převody z IBANu. Zdarma a bez registrace. Naskenují ho bankovní aplikace v Německu, Rakousku i v celé eurozóně.",
     "homeH1": "Generátor QR kódů pro platby - české a slovenské banky zdarma",
-    "homeDescription": "Vytvořte QR kód na platbu zdarma - stačí zadat IBAN, částku a symboly. Podporujeme SPAYD (QR Platba) pro české banky, PAY by square pro slovenské banky a EPC QR pro mezinárodní SEPA převody.",
+    "homeDescription": "Stačí IBAN a částka. Klient naskenuje a zaplatí jedním kliknutím. Bez registrace, bez poplatků.",
     "sectionApi": "REST API pro generování QR kódů",
     "backToHome": "Zpět na hlavní stránku",
     "webApiDescription": "REST API pro generování QR kódů pro bankovní platby ve formátech BySquare, EPC a SPAYD. Zdarma, bez autentizace.",
     "apiDocsTitle": "API dokumentace",
-    "apiDocsDescription": "Kompletní REST API dokumentace pro generování PAY by square a SPAYD QR kódů pro slovenské a české bankovní platby. Zdarma, bez autentizace.",
+    "apiDocsDescription": "Kompletní REST API dokumentace pro generování PAY by square, SPAYD a EPC QR kódů pro slovenské, české a SEPA platby. Zdarma, bez autentizace.",
     "studioTitle": "QR Studio - Pokročilý editor QR kódů",
-    "studioDescription": "Navrhněte QR kód s gradienty, vlastním logem, rámem, titulkem a polohou prvků. Plně offline, bez registrace.",
+    "studioDescription": "Navrhněte QR kód s gradienty, vlastním logem, rámem, titulkem a polohou prvků. Běží ve vašem prohlížeči, bez registrace.",
     "changelogTitle": "Změny a novinky",
-    "changelogDescription": "Chronologický přehled novinek, vylepšení a změn API v aplikaci QR Platby. Sledujte, co je nového."
+    "changelogDescription": "Chronologický přehled novinek, vylepšení a změn API v aplikaci QR Platby. Sledujte, co je nového.",
+    "readerTitle": "Čtečka QR plateb - přečtěte QR Platbu, PAY by square a EPC QR",
+    "readerDescription": "Nahrajte nebo vložte QR kód pro platbu a uvidíte IBAN, částku a symboly. Čte QR Platbu (SPAYD), PAY by square a EPC QR přímo v prohlížeči. Zdarma, bez registrace."
   },
   "Nav": {
     "home": "Domů",
     "bulk": "Hromadné generování",
+    "reader": "Čtečka",
     "apiDocs": "API",
     "faq": "Otázky",
     "changelog": "Změny",
     "closeMenu": "Zavřít menu",
     "openMenu": "Otevřít menu",
     "toggleTheme": "Přepnout motiv",
-    "skipToContent": "Přeskočit na obsah"
+    "skipToContent": "Přeskočit na obsah",
+    "guides": "Návody"
   },
   "Footer": {
-    "privacy": "Vaše údaje nepotřebujeme. Všechny jsou uloženy ve vašem prohlížeči a neopustí ho.",
-    "copyright": "© 2026 Vyrobeno s 🖤 na Slovensku",
+    "privacy": "Vaše platební údaje nepotřebujeme. Jsou uloženy ve vašem prohlížeči a neopustí ho.",
+    "copyright": "© 2026 QR Platby",
+    "madeBy": "Vyrobil <link>denysov.dev</link> s 🖤 na Slovensku",
     "privacyPolicy": "Ochrana údajů",
     "terms": "Podmínky",
-    "apiDocs": "API dokumentace"
+    "apiDocs": "API dokumentace",
+    "hobbyNotice": "QR Platby jsou hobby projekt. Vyvíjejí se ve volném čase, bez závazků vůči uživatelům a zatím bez komerčních cílů.",
+    "colTools": "Nástroje",
+    "colResources": "Informace",
+    "colProject": "Projekt",
+    "generator": "Generátor QR platby",
+    "contribute": "QR Platby jsou open source. Chcete projekt posunout dál? Přispějte kódem nebo nápadem na <link>GitHubu</link>.",
+    "reader": "Čtečka QR plateb"
   },
   "Announcement": {
-    "message": "Novinky: gradienty, logo, rám, výběr pozice a velikosti obrázku (128-1024 px) - a REST API nyní podporuje vlastní barvy, okraj a úroveň korekce chyb.",
-    "close": "Zavrit",
+    "message": "Novinky: volitelná pole platby (datum splatnosti, číslo faktury, BIC a další) a jméno příjemce je u PAY by square povinné.",
+    "close": "Zavřít",
     "readMore": "Zobrazit změny"
   },
   "Changelog": {
@@ -57,19 +75,20 @@
     "categoryImprovement": "Vylepšení"
   },
   "Consent": {
-    "message": "Tato stránka používá localStorage k uložení vašeho nastavení. Žádné cookies ani osobní údaje neshromažďujeme.",
+    "message": "Tato stránka používá localStorage k uložení vašeho nastavení a jednu cookie pro jazyk. Sledovací cookies ani osobní údaje neshromažďujeme.",
     "privacyPolicy": "Ochrana osobních údajů",
     "accept": "Rozumím"
   },
   "PaymentForm": {
     "title": "Platební údaje",
     "iban": "IBAN",
-    "ibanRequired": "IBAN *",
+    "ibanRequired": "IBAN*",
     "amount": "Částka",
     "amountPlaceholder": "0,00",
     "recipientName": "Jméno příjemce",
     "recipientNameRequired": "Jméno příjemce *",
     "recipientNamePlaceholder": "Jméno příjemce",
+    "recipientNameHint": "Přesné jméno majitele účtu. U firmy obchodní název s právní formou, ne značka.",
     "note": "Poznámka",
     "notePlaceholder": "Poznámka k platbě",
     "paymentReference": "Reference platby",
@@ -79,9 +98,23 @@
     "vs": "VS",
     "ss": "SS",
     "ks": "KS",
+    "dueDate": "Datum splatnosti",
+    "invoiceId": "Číslo faktury",
+    "invoiceIdPlaceholder": "Č. faktury",
+    "spaydReference": "Reference",
+    "spaydReferencePlaceholder": "1234567890",
+    "purposeCode": "Účel platby",
+    "purposeCodePlaceholder": "např. GDDS",
+    "instantPayment": "Okamžitá platba",
+    "optionalFields": {
+      "menu": "Pole",
+      "menuAria": "Přidat volitelná pole",
+      "title": "Přidat pole"
+    },
     "clear": "Vymazat",
     "generate": "Vygenerovat QR",
     "noHistoryResults": "Žádné výsledky z historie",
+    "bankDetected": "Rozpoznaná banka: {name}",
     "formatDescription": {
       "bysquare": "Standard slovenských bank",
       "epc": "Evropský SEPA standard",
@@ -90,15 +123,19 @@
   },
   "Validation": {
     "ibanRequired": "IBAN je povinný",
-    "ibanInvalid": "Neplatný formát IBAN",
+    "ibanInvalid": "Neplatný IBAN nebo číslo účtu",
     "amountRequired": "Částka je povinná",
     "amountMin": "Částka musí být větší než 0",
     "max10chars": "Max 10 znaků",
     "max4chars": "Max 4 znaky",
     "max70chars": "Max 70 znaků",
     "max140chars": "Max 140 znaků",
+    "max35chars": "Max 35 znaků pro SPAYD",
+    "max60chars": "Max 60 znaků pro SPAYD",
     "max11chars": "Max 11 znaků",
-    "recipientRequired": "Jméno příjemce je povinné pro EPC QR",
+    "max16chars": "Max 16 znaků",
+    "dueDateInvalid": "Neplatné datum",
+    "recipientRequired": "Jméno příjemce je povinné",
     "bicInvalid": "BIC musí mít 8 nebo 11 znaků",
     "epcMaxAmount": "Max částka pro EPC QR je 999 999 999,99 €",
     "digitsOnly": "Povoleny jsou pouze číslice",
@@ -174,6 +211,18 @@
     "dotStyleDots": "Kruhy",
     "dotStyleClassyRounded": "Elegantní",
     "openInStudio": "Otevřít ve studiu",
+    "nudgeAddLogo": "Přidat vaše logo",
+    "presets": {
+      "title": "Styly",
+      "names": {
+        "classic": "Klasický",
+        "bold": "Výrazná značka",
+        "sunset": "Sluneční gradient",
+        "framed": "S rámem"
+      },
+      "framedTitle": "PLATBA",
+      "framedCaption": "Naskenujte bankou"
+    },
     "guardrail": {
       "logoOversized": "Logo zabírá {size} % plochy QR. Bezpečné maximum při korekci {ecc} je {max} %. Zmenšete logo, aby zůstal kód skenovatelný.",
       "textOversized": "Středový text je příliš velký a přesahuje {max} % plochy QR. Zkraťte jej, zmenšete velikost nebo použijte méně řádků, aby kód zůstal skenovatelný.",
@@ -192,8 +241,8 @@
     "showLess": "Zobrazit méně"
   },
   "Studio": {
-    "title": "QR Studio",
-    "intro": "Pokročilý editor pro tvorbu QR kódu s gradienty, logem, rámem a přesným umístěním prvků. Vše ve vašem prohlížeči.",
+    "title": "Ať vypadá jako vaše značka",
+    "intro": "Vlastní barvy a gradienty, vaše logo, rám s titulkem a přesné umístění prvků. Pokročilý editor QR kódů přímo ve vašem prohlížeči.",
     "section": {
       "payment": "Platba",
       "colors": "Barvy a gradienty",
@@ -308,11 +357,11 @@
   "ShareLink": {
     "trigger": "Sdílet link",
     "title": "Sdílet platbu odkazem",
-    "description": "Odkaz obsahuje IBAN, částku, jméno příjemce, platební symboly, poznámku a vzhled QR kódu.",
+    "description": "Odkaz obsahuje platební údaje (IBAN, částku, jméno příjemce, symboly, poznámku a volitelná pole) a základní barvy a text QR kódu. Údaje jsou v části adresy za znakem #, která se neposílá na server.",
     "copyLink": "Kopírovat odkaz",
     "copied": "Odkaz zkopírován",
     "copyFailed": "Nepodařilo se zkopírovat odkaz",
-    "logoNotice": "Logo se ve sdíleném odkazu nezobrazí. QR kód na stránce příjemce bude bez loga.",
+    "logoNotice": "Logo, gradienty, styl bodů a rám se odkazem nepřenášejí. QR kód na stránce příjemce bude v základním vzhledu.",
     "hint": "Po kliknutí na odkaz se příjemci zobrazí stránka s QR kódem, který naskenuje bankovní aplikací."
   },
   "SharePage": {
@@ -321,14 +370,17 @@
     "copyIban": "Kopírovat IBAN",
     "copyFailed": "Nepodařilo se zkopírovat IBAN",
     "invalidLink": "Neplatný nebo poškozený odkaz na platbu.",
-    "backHome": "Zpět na hlavní stránku"
+    "backHome": "Zpět na hlavní stránku",
+    "ctaTitle": "Vytvořte si vlastní QR kód na platbu",
+    "ctaDescription": "Zdarma a bez registrace. Vytvořeno přes QR Platby.",
+    "ctaButton": "Vytvořit zdarma"
   },
   "Api": {
     "title": "API k dispozici",
     "description": "Integrujte generování QR kódů do vaší aplikace, chatbota nebo workflow. Zdarma, bez API klíče.",
     "promptHint": "Stačí se zeptat ChatGPT nebo Clauda:",
     "prompt": "Nejprve zavolej GET https://qr-platby.com/api/v1/qr pro dokumentaci API, poté vygeneruj český SPAYD QR kód na 500 Kč na IBAN CZ5508000000001234567899 s variabilním symbolem 1234567890",
-    "promptAlt": "Vygeneruj PAY by square QR kód na 25€ na IBAN SK3112000000198742637541",
+    "promptAlt": "Vygeneruj PAY by square QR kód na 25€ na IBAN SK3112000000198742637541 pro příjemce Ján Novák",
     "promptAltLabel": "nebo zkus slovenský PAY by square:",
     "mcpNote": "Dostupné také jako ChatGPT Custom GPT a Claude MCP server.",
     "viewDocs": "Zobrazit API dokumentaci",
@@ -337,7 +389,7 @@
   },
   "Docs": {
     "title": "API dokumentace",
-    "subtitle": "Generujte PAY by square a SPAYD QR kódy přes REST API",
+    "subtitle": "Generujte PAY by square, SPAYD a EPC QR kódy přes REST API",
     "quickStart": "Rychlý start",
     "quickStartDesc": "Vygenerujte slovenský PAY by square QR kód jedním POST požadavkem:",
     "quickStartSpayd": "Nebo vygenerujte český SPAYD QR kód:",
@@ -368,7 +420,6 @@
     "tryItDesc": "Odešlete skutečný požadavek na API a podívejte se na odpověď:",
     "noAuth": "Bez autentizace",
     "corsEnabled": "CORS povolen pro všechny zdroje",
-    "epcNote": "EPC QR (Evropský SEPA) je dostupný ve webové aplikaci, ale zatím ne přes API.",
     "amount": "Částka",
     "advanced": "Rozšířené možnosti",
     "send": "Odeslat požadavek",
@@ -377,12 +428,13 @@
     "copy": "Kopírovat",
     "copied": "Zkopírováno!",
     "copyFailed": "Nepodařilo se zkopírovat",
-    "backToHome": "Zpět na hlavní stránku"
+    "backToHome": "Zpět na hlavní stránku",
+    "warningsNote": "Odpověď může obsahovat pole warnings. Například PAY by square bez recipientName se vygeneruje, ale s upozorněním, že banky jméno příjemce ověřují."
   },
   "Feedback": {
     "trigger": "Navrhnout vylepšení",
     "title": "Navrhnout vylepšení",
-    "description": "Máte nápad na zlepšení? Napište nám.",
+    "description": "O dalším směřování rozhodujete vy. Co vám v QR Platbách chybí?",
     "placeholder": "Popište váš návrh...",
     "messageMin": "Zpráva musí mít alespoň 10 znaků",
     "messageMax": "Zpráva může mít maximálně 500 znaků",
@@ -391,8 +443,6 @@
     "close": "Zavřít",
     "successTitle": "Děkujeme za váš návrh!",
     "successClose": "Okno se automaticky zavře...",
-    "maxReachedTitle": "Limit dosažen",
-    "maxReached": "Odeslali jste maximální počet návrhů.",
     "sendFailed": "Nepodařilo se odeslat zprávu",
     "submitted": "Návrh byl odeslán",
     "previousTitle": "Předchozí návrhy ({count})",
@@ -400,12 +450,13 @@
     "timeMinutes": "před {count} min",
     "timeHours": "před {count} h",
     "timeDays": "před {count} d",
-    "ctaTitle": "Pomozte nám zlepšit QR Platby",
-    "ctaDescription": "Máte nápad na zlepšení? Dejte nám vědět."
+    "emailLabel": "E-mail (nepovinné)",
+    "emailHint": "Pokud chcete, vývojář se vám může ozvat s dotazy k návrhu.",
+    "emailInvalid": "Neplatný e-mail"
   },
   "PrivacyPolicy": {
     "title": "Ochrana osobních údajů",
-    "lastUpdated": "Poslední aktualizace: 11. únor 2026",
+    "lastUpdated": "Poslední aktualizace: 1. říjen 2026",
     "operator": {
       "heading": "Provozovatel",
       "author": "Nezávislý autor",
@@ -413,7 +464,7 @@
     },
     "dataCollection": {
       "heading": "Jaké údaje shromažďujeme",
-      "body": "<strong>Žádné.</strong> Aplikace QR Platby neshromažďuje, neukládá ani nepřenáší žádné osobní údaje na server. Všechny platební údaje (IBAN, částka, symboly) jsou zpracovány výhradně ve vašem prohlížeči."
+      "body": "<strong>Platební údaje žádné.</strong> Všechny platební údaje (IBAN, částka, symboly) se ve webové aplikaci zpracují výhradně ve vašem prohlížeči a na server se nepřenášejí. Platí to i pro sdílené odkazy: platba je v části adresy za znakem #, kterou prohlížeč na server neposílá. Výjimkou je REST API, které požadavek zpracuje na serveru a neukládá ho, a návrh na vylepšení, který odešlete sami (viz níže)."
     },
     "localStorage": {
       "heading": "Místní úložiště (localStorage)",
@@ -422,20 +473,24 @@
     },
     "analytics": {
       "heading": "Analytika",
-      "body": "Používáme <link>Vercel Web Analytics</link>, které shromažďují anonymní údaje o návštěvnosti (počet zobrazení, země). Nepoužívají cookies a neidentifikují jednotlivé uživatele."
+      "body": "Používáme <link>Vercel Web Analytics</link>, které shromažďují anonymní údaje o návštěvnosti (počet zobrazení, země) a o používání funkcí, například zvolený formát nebo počet vyplněných polí. Platební údaje mezi nimi nejsou. Analytika nepoužívá cookies a neidentifikuje jednotlivé uživatele. Po vygenerování QR kódu se na server odešle jen signál pro anonymní počítadlo; IP adresa se při něm krátce použije k ochraně před zneužitím. Jazyk stránky se při první návštěvě vybere podle země."
     },
     "cookies": {
       "heading": "Cookies a sledování",
-      "body": "Aplikace nepoužívá cookies. Nepoužíváme žádné reklamní, sledovací ani marketingové nástroje třetích stran."
+      "body": "Aplikace nepoužívá sledovací ani reklamní cookies. Jediná cookie (NEXT_LOCALE) si pamatuje zvolený jazyk. Nepoužíváme žádné reklamní, sledovací ani marketingové nástroje třetích stran."
     },
     "contact": {
       "heading": "Kontakt",
       "body": "V případě dotazů nás kontaktujte:"
+    },
+    "feedback": {
+      "heading": "Návrhy na vylepšení",
+      "body": "Pokud odešlete návrh na vylepšení, vývojář dostane text návrhu, jazyk prohlížeče a typ zařízení. E-mail je nepovinný. Pokud ho uvedete, použije se jen k tomu, aby se vám vývojář mohl ozvat k vašemu návrhu. Návrh se doručí vývojáři přes Telegram."
     }
   },
   "Terms": {
     "title": "Podmínky používání",
-    "lastUpdated": "Poslední aktualizace: 11. únor 2026",
+    "lastUpdated": "Poslední aktualizace: 1. říjen 2026",
     "about": {
       "heading": "O službě",
       "body": "QR Platby je bezplatný online nástroj pro generování QR kódů pro bankovní platby ve formátu BySquare, EPC a SPAYD (QR Platba). Služba je poskytována „tak jak je“ (as-is), bez jakýchkoli záruk."
@@ -459,6 +514,266 @@
     "contact": {
       "heading": "Kontakt",
       "body": "V případě dotazů kontaktujte:"
+    },
+    "project": {
+      "heading": "Povaha projektu",
+      "body": "QR Platby jsou hobby projekt jednoho vývojáře. Vyvíjejí se ve volném čase, bez jakýchkoli závazků vůči uživatelům a v současnosti nesledují komerční cíle."
+    }
+  },
+  "HomeContent": {
+    "section1Title": "Co je QR Platba a generátor QR kódů pro platby",
+    "section1Para1": "Platební QR kód nese IBAN příjemce, částku, symboly a zprávu, takže plátce nic nepřepisuje. Formát vyberte podle banky příjemce.",
+    "formats": [
+      {
+        "format": "bysquare",
+        "name": "PAY by square",
+        "region": "Slovensko",
+        "description": "Slovenský standard pro platební QR kódy - naskenuje ho každá slovenská bankovní aplikace."
+      },
+      {
+        "format": "spayd",
+        "name": "SPAYD",
+        "region": "Česko",
+        "description": "Český formát Short Payment Descriptor, který podporují všechny české banky."
+      },
+      {
+        "format": "epc",
+        "name": "EPC QR",
+        "region": "EU / SEPA",
+        "description": "Evropský standard SEPA pro eurové převody v rámci eurozóny."
+      }
+    ],
+    "section2Title": "Jak vytvořit QR kód na platbu - generátor QR platby",
+    "section2Steps": [
+      "Zadejte IBAN, částku a symboly",
+      "Volitelně si QR kód přizpůsobte",
+      "Vygenerujte QR kód",
+      "Naskenujte bankovní aplikací"
+    ],
+    "section3Title": "Podporované banky",
+    "section3Col1": "Banky v České republice",
+    "section3Col2": "Banky na Slovensku",
+    "section3Banks1": [
+      "Air Bank",
+      "Česká spořitelna",
+      "ČSOB",
+      "Fio banka",
+      "Komerční banka",
+      "Raiffeisenbank",
+      "mBank",
+      "MONETA"
+    ],
+    "section3Banks2": [
+      "Tatra banka",
+      "Slovenská sporiteľňa",
+      "VÚB",
+      "ČSOB",
+      "mBank",
+      "Fio banka",
+      "365.bank",
+      "UniCredit"
+    ],
+    "formatUse": "Použít tento formát",
+    "section4GuideLink": "Jak vytvořit QR kód pro platbu",
+    "section4SepaLink": "SEPA QR kód generátor",
+    "section4StudioLink": "Pokročilý editor QR",
+    "section4BulkLink": "Hromadné generování"
+  },
+  "Sepa": {
+    "h1": "SEPA QR kód generátor (EPC QR) - zdarma, bez registrace",
+    "intro1": "Vytvořte EPC QR kód (nazývaný také SEPA QR kód) pro eurové bankovní převody během pár sekund: zadejte IBAN, jméno příjemce a částku, klikněte na Vygenerovat a kód sdílejte nebo vytiskněte. Plátce ho naskenuje bankovní aplikací a převod má předvyplněný.",
+    "intro2": "Generátor je zdarma, bez registrace a platební údaje nikdy neopustí váš prohlížeč.",
+    "heroButton": "Vygenerovat EPC QR kód",
+    "whatTitle": "Co je EPC QR kód?",
+    "whatText1": "EPC QR je standard Evropské platební rady (European Payments Council) pro SEPA převody. Kód obsahuje IBAN a jméno příjemce, částku v eurech, volitelný BIC a platební referenci nebo zprávu - vše, co bankovní aplikace potřebuje k předvyplnění převodu jedním skenem.",
+    "whatText2": "EPC QR kódy fungují jen pro eurové převody. Pro platby v českých korunách použijte formát SPAYD (QR platba) a pro slovenské účty je nativní volbou PAY by square - generátor podporuje všechny tři.",
+    "banksTitle": "Které bankovní aplikace skenují EPC QR kódy?",
+    "banksText": "EPC QR je široce podporovaný v Německu a Rakousku, kde ho v aplikacích najdete jako GiroCode nebo Zahlen mit Code, a stále více i v dalších zemích eurozóny - v Belgii, Finsku, Nizozemsku, na Slovensku a jinde. Podpora se liší podle banky - pokud si nejste jistí, vygenerujte zkušební kód a naskenujte ho svou aplikací.",
+    "guideLinkLabel": "Návod krok za krokem: Jak vytvořit QR kód pro platbu",
+    "ctaTitle": "Vytvořte si SEPA QR kód",
+    "ctaText": "Zdarma, bez registrace, eurové převody na jakýkoli IBAN v SEPA prostoru.",
+    "ctaButton": "Otevřít generátor",
+    "faqTitle": "Časté otázky",
+    "faq": [
+      {
+        "question": "Je SEPA QR kód generátor zdarma?",
+        "answer": "Ano, zcela zdarma, bez omezení počtu kódů a bez registrace. QR kód se generuje ve vašem prohlížeči a údaje se nikam neodesílají."
+      },
+      {
+        "question": "Jaké údaje obsahuje EPC QR kód?",
+        "answer": "IBAN a jméno příjemce, částku v eurech a volitelně BIC a platební referenci nebo zprávu. Částku můžete nechat prázdnou a plátce ji doplní sám."
+      },
+      {
+        "question": "Podporuje moje banka EPC QR kódy?",
+        "answer": "V Německu a Rakousku je podpora téměř univerzální (v aplikaci hledejte GiroCode nebo Zahlen mit Code). Jinde v eurozóně podpora roste, ale liší se podle banky - nejrychleji to ověříte naskenováním zkušebního kódu."
+      },
+      {
+        "question": "Můžu EPC QR kód použít pro platby v jiné měně než euro?",
+        "answer": "Ne, standard EPC je jen pro eura. Pro platby v českých korunách přepněte generátor na SPAYD (QR platba) a pro slovenské účty použijte PAY by square."
+      },
+      {
+        "question": "Jaký je rozdíl mezi EPC QR, PAY by square a SPAYD?",
+        "answer": "Všechny tři kódují bankovní převod do QR kódu. EPC QR je evropský SEPA standard, PAY by square slovenský a SPAYD český standard. Vyberte formát, kterému rozumí banka příjemce - generátor podporuje všechny tři."
+      }
+    ]
+  },
+  "Reader": {
+    "h1": "Čtečka QR kódu pro platbu",
+    "intro": "Nahrajte obrázek QR kódu pro platbu nebo vložte text, který obsahuje. Uvidíte IBAN, částku, symboly a zprávu. Platbu pak můžete otevřít v generátoru, upravit ji nebo změnit formát.",
+    "uploadTitle": "Vyberte nebo přetáhněte obrázek",
+    "uploadDescription": "Fotka, snímek obrazovky nebo sken. Zkopírovaný obrázek vložíte přes Ctrl+V.",
+    "textLabel": "Nebo vložte text z QR kódu",
+    "readText": "Přečíst",
+    "privacy": "Kód přečte váš prohlížeč. Obrázek ani platba neopustí vaše zařízení.",
+    "empty": "Zde se zobrazí údaje platby.",
+    "reading": "Čtu obrázek...",
+    "error": {
+      "noQr": "Na obrázku jsme nenašli QR kód. Zkuste ostřejší fotku nebo kód ořízněte.",
+      "notPayment": "Toto není platební kód SPAYD, PAY by square ani EPC.",
+      "readFailed": "Prohlížeč tento obrázek neumí otevřít. Zkuste PNG nebo JPG."
+    },
+    "warning": {
+      "invalidIban": "IBAN nesedí kontrolním součtem. Dokud ho neověříte u příjemce, neplaťte.",
+      "multiplePayments": "Kód obsahuje více plateb. Zobrazena je jen první.",
+      "notPaymentOrder": "Jde o trvalý příkaz nebo inkaso. Generátor vytváří jen jednorázové platby.",
+      "structuredReference": "Strukturovaná reference (RF...) je přesunuta do poznámky. Nový kód ji ponese jako obyčejný text.",
+      "unsupportedCurrency": "Měna není EUR ani CZK. Generátor ji změní na EUR."
+    },
+    "resultTitle": "Platba",
+    "yes": "Ano",
+    "openInForm": "Otevřít v generátoru",
+    "openHint": "Změňte částku, formát nebo cokoli jiného a vytvořte nový kód.",
+    "useTitle": "K čemu to je",
+    "useCheck": "Kontrola faktury před zaplacením. Čtečka ukáže celý IBAN a částku z QR kódu na faktuře nebo v e-mailu a upozorní na IBAN s chybným kontrolním součtem.",
+    "useConvert": "Převod mezi formáty. Slovenské faktury nesou PAY by square, který většina bank mimo Slovensko nečte. Otevřete platbu v generátoru, přepněte na EPC QR a stáhněte kód, který přijme každá SEPA bankovní aplikace.",
+    "faqTitle": "Otázky",
+    "faq": [
+      {
+        "question": "Které QR kódy přečte?",
+        "answer": "QR Platba / SPAYD (Česko), PAY by square (Slovensko) a EPC QR (SEPA, eurozóna). Odkazy, Wi-Fi a jiné QR kódy nejsou platby a čtečka to oznámí."
+      },
+      {
+        "question": "Posílá se moje platba někam?",
+        "answer": "Ne. Kód čte váš prohlížeč přímo ve vašem zařízení. Obrázek ani údaje platby se na náš server nedostanou."
+      },
+      {
+        "question": "Dá se přečíst QR kód z faktury v PDF?",
+        "answer": "Udělejte snímek obrazovky s kódem a vložte ho přes Ctrl+V nebo ho nahrajte. Na mobilu umí tlačítko pro nahrání rovnou vyfotit kód."
+      }
+    ]
+  },
+  "Guide": {
+    "h1": "Jak vytvořit QR kód pro platbu",
+    "intro1": "QR kód pro platbu vytvoříte zdarma během pár sekund: zadejte IBAN a částku do generátoru, klikněte na Vygenerovat a hotový QR kód si stáhněte nebo jej nechte naskenovat přímo z obrazovky. Nepotřebujete registraci ani instalaci - stačí prohlížeč.",
+    "intro2": "Bankovní aplikace z kódu přečte všechny platební údaje - číslo účtu, částku, variabilní symbol i zprávu pro příjemce - a předvyplní převod. Plátce už jen potvrdí platbu. Odpadá ruční přepisování čísel účtů i překlepy.",
+    "stepsTitle": "Vytvoření QR kódu krok za krokem",
+    "steps": [
+      {
+        "name": "Zadejte IBAN",
+        "text": "Vložte IBAN účtu, na který má platba přijít. Generátor automaticky rozpozná banku a zkontroluje formát. IBAN najdete v internetovém bankovnictví u detailu účtu. U PAY by square a EPC QR doplňte i přesné jméno majitele účtu, banky ho při platbě ověřují."
+      },
+      {
+        "name": "Doplňte částku a symboly",
+        "text": "Částka je volitelná - když ji necháte prázdnou, vznikne statický QR kód a plátce ji zadá sám. Variabilní, specifický a konstantní symbol doplňte podle potřeby, například číslo faktury."
+      },
+      {
+        "name": "Vyberte formát",
+        "text": "Pro české banky nechte SPAYD (QR platba). Pro slovenské banky zvolte PAY by square a pro ostatní evropské banky EPC QR (SEPA)."
+      },
+      {
+        "name": "Vygenerujte QR kód",
+        "text": "Klikněte na Vygenerovat. QR kód se vytvoří přímo ve vašem prohlížeči - platební údaje se nikam neodesílají."
+      },
+      {
+        "name": "Stáhněte nebo sdílejte",
+        "text": "QR kód si stáhněte jako obrázek, zkopírujte do schránky nebo jej nechte naskenovat přímo z obrazovky. Vložit ho můžete na fakturu, do e-mailu i na leták."
+      }
+    ],
+    "formatsTitle": "Který formát QR kódu vybrat",
+    "formatsIntro": "Každá země používá vlastní standard platebních QR kódů. Generátor podporuje všechny tři hlavní formáty:",
+    "formats": [
+      {
+        "name": "SPAYD",
+        "region": "Česko",
+        "description": "Český standard QR platba (Short Payment Descriptor). Podporují ho všechny české banky - Česká spořitelna, Komerční banka, ČSOB, Air Bank, Fio, Raiffeisenbank i Moneta. První volba pro platby na český účet."
+      },
+      {
+        "name": "PAY by square",
+        "region": "Slovensko",
+        "description": "Slovenský standard, který naskenuje každá slovenská bankovní aplikace. Zvolte ho pro platby na slovenský účet."
+      },
+      {
+        "name": "EPC QR",
+        "region": "EU / SEPA",
+        "description": "Evropský standard pro eurové SEPA převody. Funguje v bankovních aplikacích v Německu, Rakousku, Nizozemsku a většině eurozóny."
+      }
+    ],
+    "ctaTitle": "Vytvořte si QR kód pro platbu",
+    "ctaText": "Generátor je zdarma, bez registrace a všechny údaje zůstávají ve vašem prohlížeči.",
+    "ctaButton": "Otevřít generátor",
+    "faqTitle": "Časté otázky",
+    "faq": [
+      {
+        "question": "Je vytvoření QR kódu zdarma?",
+        "answer": "Ano, generátor je zcela zdarma a bez omezení počtu QR kódů. Není potřeba registrace ani instalace."
+      },
+      {
+        "question": "Musím něco instalovat?",
+        "answer": "Ne. Generátor běží přímo v prohlížeči na počítači i mobilu. Na skenování stačí bankovní aplikace, kterou už máte."
+      },
+      {
+        "question": "Funguje QR kód s mou bankou?",
+        "answer": "Ano. SPAYD (QR platba) podporují všechny české banky, PAY by square všechny slovenské banky a EPC QR většina evropských bank v eurozóně."
+      },
+      {
+        "question": "Co je variabilní symbol v QR kódu?",
+        "answer": "Variabilní symbol je identifikátor platby, nejčastěji číslo faktury. Bankovní aplikace ho z QR kódu automaticky předvyplní, takže platbu snadno spárujete s fakturou."
+      },
+      {
+        "question": "Můžu vytvořit QR kód bez částky?",
+        "answer": "Ano. Když částku nevyplníte, vznikne statický QR kód - plátce zadá částku sám. Hodí se na dobrovolné příspěvky nebo opakované platby s různou částkou."
+      },
+      {
+        "question": "Potřebuji IBAN, nebo stačí číslo účtu?",
+        "answer": "Generátor pracuje s IBANem. Svůj IBAN najdete v internetovém bankovnictví u detailu účtu, případně si ho z čísla účtu převedete kalkulačkou na webu ČNB."
+      }
+    ]
+  },
+  "Community": {
+    "title": "O směřování QR Plateb rozhodujete vy",
+    "description": "QR Platby jsou hobby projekt, zdarma a bez registrace. Plán vývoje není sepsaný předem: další funkce přibývají podle toho, co vám chybí. Napište vlastní návrh nebo klikněte na jeden z příkladů. Pokud vám nástroj šetří čas, můžete ho podpořit.",
+    "support": "Podpořit projekt",
+    "examplesTitle": "Příklady návrhů",
+    "examples": [
+      "Export QR kódu do SVG nebo PDF pro tisk",
+      "QR kód pro trvalý příkaz",
+      "Faktura s QR kódem ke stažení",
+      "Další měny a jazyky"
+    ]
+  },
+  "Guides": {
+    "h1": "Návody",
+    "intro": "Postupy a vysvětlení k platebním QR kódům: jak je vytvořit, který formát zvolit a co podporují banky."
+  },
+  "Stats": {
+    "totalLabel": "vygenerovaných QR kódů",
+    "last30Label": "za posledních 30 dní",
+    "apiLabel": "API requestů",
+    "caption": "Anonymní statistiky - vaše platební údaje nikdy nevidíme."
+  },
+  "JsonLd": {
+    "howTo": {
+      "name": "Jak vytvořit QR kód na platbu",
+      "description": "Jednoduché kroky pro vytváření QR kódů pro bankovní platby pomocí QR Platby.",
+      "tool": "QR Platby generátor",
+      "step1Name": "Zadejte platební údaje",
+      "step1Text": "Zadejte IBAN, částku, variabilní symbol a další platební informace.",
+      "step2Name": "Přizpůsobte QR kód",
+      "step2Text": "Volitelně změňte barvy, styl teček nebo přidejte své logo.",
+      "step3Name": "Vygenerujte QR kód",
+      "step3Text": "Klikněte na tlačítko Vygenerovat a vytvořte svůj QR kód.",
+      "step4Name": "Naskenujte bankovní aplikací",
+      "step4Text": "Otevřete svou bankovní aplikaci a naskenujte QR kód pro potvrzení platby."
     }
   }
 }

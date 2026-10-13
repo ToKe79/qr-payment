@@ -2,13 +2,23 @@
 
 import { Autocomplete } from "@base-ui/react/autocomplete";
 import { IconHistory } from "@tabler/icons-react";
+import { track } from "@vercel/analytics";
 import { electronicFormatIBAN, friendlyFormatIBAN } from "ibantools";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { PaymentRecord } from "@/features/payment/schema";
 import { usePaymentHistory } from "@/features/payment/store";
+import { domesticAccountToIban } from "@/lib/iban-bank";
 import { cn } from "@/lib/utils";
 import { inputVariants } from "./ui/input";
+
+const EMPTY_HISTORY: PaymentRecord[] = [];
+
+/** Digits with `-` or `/`: a Czech or Slovak account number being typed. */
+const DOMESTIC_TYPING_RE = /^\d[\d\s/-]*$/;
+const DOMESTIC_SEPARATOR_RE = /[/-]/;
+const WHITESPACE_RE = /\s/g;
+const NON_IBAN_CHARS_RE = /[^A-Z0-9]/g;
 
 interface IBANSuggestion {
   id: string;
@@ -27,6 +37,7 @@ interface IBANAutocompleteProps {
   placeholder?: string;
   className?: string;
   hasError?: boolean;
+  isValid?: boolean;
   ref?: React.Ref<HTMLInputElement>;
 }
 
@@ -38,10 +49,19 @@ export function IBANAutocomplete({
   placeholder = "SK89 7500 0000 0000 1234 5678",
   className,
   hasError = false,
+  isValid = false,
   ref,
 }: IBANAutocompleteProps) {
   const t = useTranslations("PaymentForm");
-  const history = usePaymentHistory();
+  const persistedHistory = usePaymentHistory();
+  // Gate localStorage-backed history behind a mount flag so SSR and the first
+  // client render produce identical DOM (same item count → same Base UI
+  // `useId()` sequence → no hydration mismatch).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const history = mounted ? persistedHistory : EMPTY_HISTORY;
 
   const suggestions = useMemo((): IBANSuggestion[] => {
     const uniqueIbans = new Map<string, PaymentRecord>();
@@ -63,14 +83,27 @@ export function IBANAutocomplete({
     }));
   }, [history]);
 
-  const displayValue = friendlyFormatIBAN(value) || value;
+  // A half-typed account number keeps its separators; grouping it like an
+  // IBAN would drop the `/` before the bank code is in.
+  const displayValue = DOMESTIC_SEPARATOR_RE.test(value)
+    ? value
+    : friendlyFormatIBAN(value) || value;
 
   const handleValueChange = (newValue: string) => {
-    const cleaned = newValue
-      .toUpperCase()
-      .replace(/[^A-Z0-9]/g, "")
-      .slice(0, 34);
-    onChange(cleaned);
+    const iban = domesticAccountToIban(newValue);
+    if (iban) {
+      onChange(iban);
+      track("domestic_account_converted", { country: iban.slice(0, 2) });
+      return;
+    }
+    if (DOMESTIC_TYPING_RE.test(newValue.trim())) {
+      // Longest domestic form: 6-digit prefix, 10-digit number, 4-digit code.
+      onChange(newValue.replace(WHITESPACE_RE, "").slice(0, 22));
+      return;
+    }
+    onChange(
+      newValue.toUpperCase().replace(NON_IBAN_CHARS_RE, "").slice(0, 34)
+    );
   };
 
   const handleItemClick = (suggestion: IBANSuggestion) => {
@@ -97,6 +130,9 @@ export function IBANAutocomplete({
           inputVariants(),
           "h-8!",
           hasError && "border-destructive focus-visible:ring-destructive",
+          isValid &&
+            !hasError &&
+            "border-success ring-1 ring-success/40 focus-visible:border-success focus-visible:ring-success/50",
           className
         )}
         id={id}

@@ -13,6 +13,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CustomizerControls } from "@/features/customizer/components/customizer-controls";
+import { PresetButtons } from "@/features/customizer/components/preset-buttons";
 import { TemplateSelector } from "@/features/customizer/components/template-selector";
 import {
   useCustomizerActions,
@@ -31,7 +32,8 @@ const DEFAULT_PAYMENT: StudioPaymentState = {
   amount: 25,
   currency: "EUR",
   format: "bysquare",
-  recipientName: "",
+  // Sample payee so the preview renders: PAY by square requires a name.
+  recipientName: "Ján Novák",
 };
 
 const AMOUNT_FMT = new Intl.NumberFormat("sk-SK", {
@@ -47,7 +49,8 @@ function toPaymentData(p: StudioPaymentState): PaymentFormData | null {
   if (p.amount < 0 || p.amount > 999_999_999.99) {
     return null;
   }
-  if (p.format === "epc" && !p.recipientName.trim()) {
+  // Same rule as the home form: only SPAYD may omit the payee name.
+  if (p.format !== "spayd" && !p.recipientName.trim()) {
     return null;
   }
   return {
@@ -72,6 +75,9 @@ export function StudioClient() {
   return (
     <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_360px]">
       <div className="flex flex-col gap-3">
+        <div className="border border-border bg-card p-4">
+          <PresetButtons source="studio" />
+        </div>
         <Accordion
           className="flex flex-col gap-3"
           defaultValue={["payment"]}
@@ -107,7 +113,7 @@ export function StudioClient() {
         <CustomizerControls />
 
         <div className="flex justify-end">
-          <Button onClick={reset} size="sm" variant="outline">
+          <Button onClick={reset} size="sm" variant="ghost">
             <IconRefresh />
             {t("reset")}
           </Button>

@@ -1,29 +1,27 @@
 "use client";
+// react-hook-form re-attaches inputs by calling register() on every render.
+// The React Compiler caches those calls, so after reset() the text inputs stay
+// detached and edits never reach the form state.
+"use no memo";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { IconLoader3, IconQrcode, IconTrash } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconLoader3,
+  IconQrcode,
+  IconTrash,
+} from "@tabler/icons-react";
 import { track } from "@vercel/analytics";
-import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useMemo } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import {
+  Controller,
+  type FieldErrors,
+  useForm,
+  useWatch,
+} from "react-hook-form";
 import { CurrencyInput } from "@/components/currency-input";
-import { inputVariants } from "@/components/ui/input";
-import { SegmentedControl } from "@/components/ui/segmented-control";
-import { Skeleton } from "@/components/ui/skeleton";
-
-// Dynamic import to prevent hydration mismatch from Base UI's auto-generated IDs
-const IBANAutocomplete = dynamic(
-  () =>
-    import("@/components/iban-autocomplete").then(
-      (mod) => mod.IBANAutocomplete
-    ),
-  {
-    ssr: false,
-    loading: () => <Skeleton className={inputVariants({ className: "h-9" })} />,
-  }
-);
-
+import { IBANAutocomplete } from "@/components/iban-autocomplete";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,14 +33,26 @@ import {
 import {
   Field,
   FieldContent,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Textarea } from "@/components/ui/textarea";
+import { detectBank } from "@/lib/iban-bank";
 import type { PaymentFormat } from "../format";
-import { FORMAT_LABELS } from "../format";
+import { FORMAT_LABELS, SELECT_FORMAT_EVENT } from "../format";
+import {
+  OPTIONAL_FIELDS,
+  OPTIONAL_FIELDS_BY_FORMAT,
+  type OptionalFieldKey,
+} from "../optional-fields";
+import {
+  useEnabledOptionalFields,
+  useOptionalFieldsActions,
+} from "../optional-fields-store";
 import {
   createPaymentFormSchema,
   type PaymentFormData,
@@ -55,6 +65,8 @@ import {
   usePreferredFormat,
 } from "../store";
 import { usePaymentGenerator } from "../use-payment-generator";
+import { FormatExtrasMenu } from "./format-extras-menu";
+import { OptionalFields } from "./optional-fields";
 
 function BicField({
   register,
@@ -76,6 +88,44 @@ function BicField({
           placeholder={t("bicPlaceholder")}
         />
         <FieldError errors={errors.bic ? [errors.bic] : undefined} />
+      </FieldContent>
+    </Field>
+  );
+}
+
+/**
+ * Payee name. Required for PAY by square and EPC, where the payer's bank
+ * verifies it against the IBAN; optional for SPAYD.
+ */
+function RecipientField({
+  register,
+  errors,
+  t,
+  required,
+}: {
+  register: ReturnType<typeof useForm<PaymentFormData>>["register"];
+  errors: ReturnType<typeof useForm<PaymentFormData>>["formState"]["errors"];
+  t: ReturnType<typeof useTranslations<"PaymentForm">>;
+  required: boolean;
+}) {
+  return (
+    <Field>
+      <FieldLabel htmlFor="recipient">
+        {required ? t("recipientNameRequired") : t("recipientName")}
+      </FieldLabel>
+      <FieldContent>
+        <Input
+          {...register("recipientName")}
+          id="recipient"
+          maxLength={70}
+          placeholder={t("recipientNamePlaceholder")}
+        />
+        {required ? (
+          <FieldDescription>{t("recipientNameHint")}</FieldDescription>
+        ) : null}
+        <FieldError
+          errors={errors.recipientName ? [errors.recipientName] : undefined}
+        />
       </FieldContent>
     </Field>
   );
@@ -166,6 +216,11 @@ const defaultValues: PaymentFormData = {
   recipientName: "",
   paymentNote: "",
   bic: "",
+  paymentDueDate: "",
+  invoiceId: "",
+  spaydReference: "",
+  purposeCode: "",
+  instantPayment: false,
 };
 
 export function PaymentFormCard() {
@@ -198,8 +253,51 @@ export function PaymentFormCard() {
 
   const format = watch("format");
   const currency = watch("currency");
+  const iban = watch("iban");
+  const detectedBank = useMemo(() => detectBank(iban), [iban]);
 
-  const handleFormatChange = (newFormat: PaymentFormat) => {
+  // Optional fields: visible when opted in (persisted per format) or when they
+  // already hold a value (e.g. filled from history). The persisted choice is
+  // applied after mount so server and first client render match.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const activeFormat = format ?? "bysquare";
+  const enabledExtras = useEnabledOptionalFields(activeFormat);
+  const { enable, disable } = useOptionalFieldsActions();
+  const extraKeys = OPTIONAL_FIELDS_BY_FORMAT[activeFormat];
+  const extraValues = useWatch({ control, name: extraKeys });
+  const isExtraVisible = (key: OptionalFieldKey) =>
+    (mounted && enabledExtras.includes(key)) ||
+    Boolean(extraValues[extraKeys.indexOf(key)]);
+  const visibleExtras = extraKeys.filter(isExtraVisible);
+
+  const toggleExtra = (key: OptionalFieldKey) => {
+    const visible = isExtraVisible(key);
+    const isCheckbox = OPTIONAL_FIELDS[key].inputType === "checkbox";
+    if (visible) {
+      disable(activeFormat, key);
+      setValue(key, isCheckbox ? false : "");
+    } else {
+      enable(activeFormat, key);
+      if (isCheckbox) {
+        setValue(key, true);
+      }
+    }
+    track("optional_field_toggled", {
+      format: activeFormat,
+      field: key,
+      enabled: !visible,
+    });
+  };
+
+  // Format requested by /?format=, kept until the user picks one themselves so
+  // restoring the saved payment below does not overwrite it.
+  const urlFormat = useRef<PaymentFormat | null>(null);
+
+  const applyFormat = (newFormat: PaymentFormat) => {
+    urlFormat.current = null;
     setValue("format", newFormat);
     setPreferredFormat(newFormat);
     if (newFormat === "epc") {
@@ -208,25 +306,53 @@ export function PaymentFormCard() {
       setValue("currency", "CZK");
       setPreferredCurrency("CZK");
     }
+  };
+
+  const handleFormatChange = (newFormat: PaymentFormat) => {
+    applyFormat(newFormat);
     track("format_selected", { format: newFormat });
   };
+
+  // Format tiles further down the homepage switch the format from outside.
+  // They track their own click, so this path skips `format_selected`.
+  const onExternalFormat = useEffectEvent((event: Event) => {
+    applyFormat((event as CustomEvent<PaymentFormat>).detail);
+  });
+  useEffect(() => {
+    window.addEventListener(SELECT_FORMAT_EVENT, onExternalFormat);
+    return () =>
+      window.removeEventListener(SELECT_FORMAT_EVENT, onExternalFormat);
+  }, []);
+
+  // Landing pages link to /?format=epc. Read on mount from window.location:
+  // useSearchParams() would opt the homepage out of prerendering.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("format");
+    if (requested && requested in FORMAT_LABELS) {
+      urlFormat.current = requested as PaymentFormat;
+      setValue("format", urlFormat.current);
+      if (requested === "epc") {
+        setValue("currency", "EUR");
+      }
+    }
+  }, [setValue]);
 
   useEffect(() => {
     if (!currentPayment) {
       return;
     }
+    // Record metadata is dropped; fields an older record lacks keep defaults.
+    const { id, createdAt, qrDataUrl, name, ...formData } = currentPayment;
+    const requested = urlFormat.current;
     reset({
-      format: currentPayment.format ?? "bysquare",
-      currency: currentPayment.currency ?? "EUR",
-      iban: currentPayment.iban,
-      amount: currentPayment.amount,
-      recipientName: currentPayment.recipientName || "",
-      variableSymbol: currentPayment.variableSymbol || "",
-      specificSymbol: currentPayment.specificSymbol || "",
-      constantSymbol: currentPayment.constantSymbol || "",
-      paymentNote: currentPayment.paymentNote || "",
-      bic: currentPayment.bic || "",
+      ...defaultValues,
+      ...formData,
+      ...(requested && { format: requested }),
+      ...(requested === "epc" && { currency: "EUR" as const }),
     });
+    if (requested) {
+      return;
+    }
     setPreferredFormat(currentPayment.format ?? "bysquare");
     setPreferredCurrency(currentPayment.currency ?? "EUR");
   }, [currentPayment, reset, setPreferredFormat, setPreferredCurrency]);
@@ -249,11 +375,21 @@ export function PaymentFormCard() {
     setPreferredCurrency("CZK");
   }, [locale, setValue, setPreferredFormat, setPreferredCurrency]);
 
+  // Which fields stop a generation, e.g. "iban,recipientName". Analytics only
+  // gets field names and the format, never the values.
+  const trackValidationFailed = (invalid: FieldErrors<PaymentFormData>) => {
+    track("qr_validation_failed", {
+      format: activeFormat,
+      fields: Object.keys(invalid).sort().join(","),
+    });
+  };
+
   const handleClear = () => {
     reset({ ...defaultValues, format });
   };
 
   const handleSelectFromHistory = (payment: PaymentRecord) => {
+    urlFormat.current = null;
     setValue("format", payment.format ?? "bysquare");
     setValue("currency", payment.currency ?? "EUR");
     setValue("recipientName", payment.recipientName || "");
@@ -262,111 +398,126 @@ export function PaymentFormCard() {
     setValue("constantSymbol", payment.constantSymbol || "");
     setValue("paymentNote", payment.paymentNote || "");
     setValue("bic", payment.bic || "");
+    setValue("paymentDueDate", payment.paymentDueDate || "");
+    setValue("invoiceId", payment.invoiceId || "");
+    setValue("spaydReference", payment.spaydReference || "");
+    setValue("purposeCode", payment.purposeCode || "");
+    setValue("instantPayment", payment.instantPayment ?? false);
     setPreferredFormat(payment.format ?? "bysquare");
     setPreferredCurrency(payment.currency ?? "EUR");
     // amount is not filled — usually the amount is different
   };
 
   return (
-    <Card>
+    <Card className="py-0">
+      <SegmentedControl
+        className="h-10"
+        onChange={handleFormatChange}
+        options={FORMAT_OPTIONS}
+        value={format ?? "bysquare"}
+      />
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
-          <CardTitle>{t("title")}</CardTitle>
-          <SegmentedControl
-            onChange={handleFormatChange}
-            options={FORMAT_OPTIONS}
-            value={format ?? "bysquare"}
+          <CardTitle>{t(`formatDescription.${activeFormat}`)}</CardTitle>
+          <FormatExtrasMenu
+            format={activeFormat}
+            isVisible={isExtraVisible}
+            onToggle={toggleExtra}
           />
         </div>
-        <p className="text-muted-foreground text-xs">
-          {t(`formatDescription.${format ?? "bysquare"}`)}
-        </p>
       </CardHeader>
-      <form className="flex h-full flex-col" onSubmit={handleSubmit(generate)}>
-        <CardContent className="flex-1 grow">
+
+      <form
+        className="flex h-full flex-col"
+        onSubmit={handleSubmit(generate, trackValidationFailed)}
+      >
+        <CardContent className="flex-1 grow border-t py-4">
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="iban">{t("ibanRequired")}</FieldLabel>
-
-              <Controller
-                control={control}
-                name="iban"
-                render={({ field, fieldState }) => (
-                  <IBANAutocomplete
-                    hasError={!!fieldState.error}
-                    id="iban"
-                    onChange={field.onChange}
-                    onSelectPayment={handleSelectFromHistory}
-                    value={field.value}
-                  />
-                )}
-              />
-              <FieldError errors={errors.iban ? [errors.iban] : undefined} />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="amount">{t("amount")}</FieldLabel>
-              <FieldContent>
-                <div className="flex items-stretch gap-2">
-                  <div className="flex-1">
-                    <Controller
-                      control={control}
-                      name="amount"
-                      render={({ field }) => (
-                        <CurrencyInput
-                          currency={currency ?? "EUR"}
-                          id="amount"
-                          onChange={field.onChange}
-                          placeholder={t("amountPlaceholder")}
-                          value={field.value}
-                        />
-                      )}
-                    />
-                  </div>
-                  {format !== "epc" ? (
-                    <SegmentedControl
-                      className="h-auto"
-                      onChange={(val) => {
-                        setValue("currency", val as "EUR" | "CZK");
-                        setPreferredCurrency(val as "EUR" | "CZK");
-                      }}
-                      options={CURRENCY_OPTIONS}
-                      value={currency ?? "EUR"}
-                    />
+            <div className="flex w-full flex-col items-stretch gap-2 sm:flex-row">
+              <Field className="grow">
+                <FieldLabel className="items-center" htmlFor="iban">
+                  <span>{t("ibanRequired")}</span>
+                  {detectedBank ? (
+                    <output
+                      aria-label={t("bankDetected", {
+                        name: detectedBank.name,
+                      })}
+                      className="fade-in-0 slide-in-from-left-1 ml-auto inline-flex animate-in items-center gap-1 text-success text-xs duration-200 ease-out-quad"
+                    >
+                      <IconCheck aria-hidden className="size-3.5 shrink-0" />
+                      <span aria-hidden className="font-medium">
+                        {detectedBank.name}
+                      </span>
+                    </output>
                   ) : null}
-                </div>
-                <FieldError
-                  errors={errors.amount ? [errors.amount] : undefined}
-                />
-              </FieldContent>
-            </Field>
+                </FieldLabel>
 
+                <Controller
+                  control={control}
+                  name="iban"
+                  render={({ field, fieldState }) => (
+                    <IBANAutocomplete
+                      hasError={!!fieldState.error}
+                      id="iban"
+                      isValid={!!detectedBank}
+                      onChange={field.onChange}
+                      onSelectPayment={handleSelectFromHistory}
+                      value={field.value}
+                    />
+                  )}
+                />
+                <FieldError errors={errors.iban ? [errors.iban] : undefined} />
+              </Field>
+
+              <Field className="shrink">
+                <FieldLabel htmlFor="amount">{t("amount")}</FieldLabel>
+                <FieldContent>
+                  <div className="flex items-stretch">
+                    <div className="w-fit">
+                      <Controller
+                        control={control}
+                        name="amount"
+                        render={({ field }) => (
+                          <CurrencyInput
+                            currency={currency ?? "EUR"}
+                            id="amount"
+                            onChange={field.onChange}
+                            placeholder={t("amountPlaceholder")}
+                            value={field.value}
+                          />
+                        )}
+                      />
+                    </div>
+                    {format !== "epc" ? (
+                      <SegmentedControl
+                        className="h-auto border-y border-r"
+                        onChange={(val) => {
+                          setValue("currency", val as "EUR" | "CZK");
+                          setPreferredCurrency(val as "EUR" | "CZK");
+                        }}
+                        options={CURRENCY_OPTIONS}
+                        value={currency ?? "EUR"}
+                      />
+                    ) : null}
+                  </div>
+                  <FieldError
+                    errors={errors.amount ? [errors.amount] : undefined}
+                  />
+                </FieldContent>
+              </Field>
+            </div>
             {format === "epc" ? (
               <BicField errors={errors} register={register} t={t} />
             ) : (
               <SymbolFields errors={errors} register={register} t={t} />
             )}
 
-            <Field>
-              <FieldLabel htmlFor="recipient">
-                {format === "epc"
-                  ? t("recipientNameRequired")
-                  : t("recipientName")}
-              </FieldLabel>
-              <FieldContent>
-                <Input
-                  {...register("recipientName")}
-                  id="recipient"
-                  maxLength={70}
-                  placeholder={t("recipientNamePlaceholder")}
-                />
-                <FieldError
-                  errors={
-                    errors.recipientName ? [errors.recipientName] : undefined
-                  }
-                />
-              </FieldContent>
-            </Field>
+            <RecipientField
+              errors={errors}
+              register={register}
+              required={activeFormat !== "spayd"}
+              t={t}
+            />
 
             <Field>
               <FieldLabel htmlFor="note">
@@ -389,20 +540,22 @@ export function PaymentFormCard() {
                 />
               </FieldContent>
             </Field>
+
+            <OptionalFields control={control} keys={visibleExtras} />
           </FieldGroup>
         </CardContent>
-        <CardFooter className="mt-auto shrink-0 gap-2 sm:justify-end">
+        <CardFooter className="mt-auto shrink-0 p-0">
           <Button
-            className="flex-1 sm:flex-initial"
+            className="h-12 w-full flex-1 sm:flex-initial"
             onClick={handleClear}
             type="button"
-            variant="outline"
+            variant="ghost"
           >
             <IconTrash />
             {t("clear")}
           </Button>
           <Button
-            className="flex-1 sm:flex-initial"
+            className="h-12 w-full flex-1 sm:flex-initial"
             disabled={isPending}
             type="submit"
           >

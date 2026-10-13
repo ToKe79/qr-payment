@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   reactCompiler: true,
   experimental: {
+    // Rust port of the React Compiler, runs inside Turbopack instead of Babel.
+    turbopackRustReactCompiler: true,
     optimizeCss: true,
     optimizePackageImports: [
       "@tabler/icons-react",
@@ -16,6 +18,17 @@ const nextConfig: NextConfig = {
       "react-hook-form",
       "zod",
     ],
+  },
+  // The FAQ moved onto the homepage; keep the old URLs working.
+  async redirects() {
+    return [
+      { source: "/faq", destination: "/#faq", permanent: true },
+      {
+        source: "/:locale(cs|en)/faq",
+        destination: "/:locale#faq",
+        permanent: true,
+      },
+    ];
   },
   async headers() {
     return [

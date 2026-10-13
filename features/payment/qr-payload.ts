@@ -1,4 +1,5 @@
-import { CurrencyCode, encode, PaymentOptions } from "bysquare";
+import { Version } from "bysquare";
+import { CurrencyCode, encode, PaymentOptions } from "bysquare/pay";
 import { encodeEpcQr } from "./epc-encoder";
 import type { PaymentFormat } from "./format";
 import { encodeSpaydQr } from "./spayd-encoder";
@@ -13,6 +14,44 @@ interface QrPayloadInput {
   recipientName?: string;
   paymentNote?: string;
   bic?: string;
+  paymentDueDate?: string;
+  invoiceId?: string;
+  spaydReference?: string;
+  purposeCode?: string;
+  instantPayment?: boolean;
+}
+
+function encodeBysquare(
+  data: QrPayloadInput,
+  cleanIban: string,
+  currencyCode: CurrencyCode
+): string {
+  const payment: Parameters<typeof encode>[0]["payments"][0] = {
+    type: PaymentOptions.PaymentOrder,
+    ...(data.amount && { amount: data.amount }),
+    currencyCode,
+    bankAccounts: [{ iban: cleanIban, ...(data.bic && { bic: data.bic }) }],
+    ...(data.variableSymbol && { variableSymbol: data.variableSymbol }),
+    ...(data.specificSymbol && { specificSymbol: data.specificSymbol }),
+    ...(data.constantSymbol && { constantSymbol: data.constantSymbol }),
+    // bysquare expects YYYYMMDD; the form and API use YYYY-MM-DD.
+    ...(data.paymentDueDate && {
+      paymentDueDate: data.paymentDueDate.replaceAll("-", ""),
+    }),
+    ...(data.paymentNote && { paymentNote: data.paymentNote }),
+    // An empty name encodes the same as no beneficiary at all.
+    beneficiary: { name: data.recipientName ?? "" },
+  };
+
+  // Spec 1.0.0 on purpose: 1.1.0+ is not read by every banking app (bysquare
+  // itself named Tatra banka), and 1.2.0 makes the beneficiary name mandatory.
+  return encode(
+    {
+      ...(data.invoiceId && { invoiceId: data.invoiceId }),
+      payments: [payment],
+    },
+    { deburr: true, validate: true, version: Version["1.0.0"] }
+  );
 }
 
 export function buildQrPayload(
@@ -30,6 +69,7 @@ export function buildQrPayload(
         beneficiaryName: data.recipientName ?? "",
         bic: data.bic ?? undefined,
         remittanceText: data.paymentNote ?? undefined,
+        purposeCode: data.purposeCode || undefined,
       }),
       errorCorrectionLevel: "M",
     };
@@ -48,27 +88,16 @@ export function buildQrPayload(
         recipientName: data.recipientName || undefined,
         paymentNote: data.paymentNote || undefined,
         bic: data.bic ?? undefined,
+        dueDate: data.paymentDueDate || undefined,
+        reference: data.spaydReference || undefined,
+        instantPayment: data.instantPayment,
       }),
       errorCorrectionLevel: "M",
     };
   }
 
-  const payment: Parameters<typeof encode>[0]["payments"][0] = {
-    type: PaymentOptions.PaymentOrder,
-    ...(data.amount && { amount: data.amount }),
-    currencyCode,
-    bankAccounts: [{ iban: cleanIban }],
-    ...(data.variableSymbol && { variableSymbol: data.variableSymbol }),
-    ...(data.specificSymbol && { specificSymbol: data.specificSymbol }),
-    ...(data.constantSymbol && { constantSymbol: data.constantSymbol }),
-    ...(data.paymentNote && { paymentNote: data.paymentNote }),
-    ...(data.recipientName && {
-      beneficiary: { name: data.recipientName },
-    }),
-  };
-
   return {
-    payload: encode({ payments: [payment] }),
+    payload: encodeBysquare(data, cleanIban, currencyCode),
     errorCorrectionLevel: "H",
   };
 }

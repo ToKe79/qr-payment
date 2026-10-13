@@ -14,6 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { createFeatureRequestSchema } from "../schema";
 import { sendFeedback } from "../send-feedback";
@@ -25,12 +27,17 @@ type DialogState = "idle" | "submitting" | "success";
 const MOBILE_RE = /Mobi|Android/i;
 
 export function FeatureRequestDialog({
+  defaultMessage = "",
   trigger,
 }: {
+  /** Text the textarea starts with each time the dialog opens. */
+  defaultMessage?: string;
   trigger?: React.ReactElement;
 }) {
   const [message, setMessage] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [state, setState] = useState<DialogState>("idle");
   const { addRequest } = useFeedbackActions();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -41,24 +48,38 @@ export function FeatureRequestDialog({
       createFeatureRequestSchema({
         min: t("messageMin"),
         max: t("messageMax"),
+        email: t("emailInvalid"),
       }),
     [t]
   );
 
-  const handleOpenChange = useCallback((open: boolean) => {
-    if (open) {
-      track("feature_request_opened");
-    } else {
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        setMessage(defaultMessage);
+        track("feature_request_opened");
+        return;
+      }
+
       setMessage("");
+      setEmail("");
       setError(null);
+      setEmailError(null);
       setState("idle");
-    }
-  }, []);
+    },
+    [defaultMessage]
+  );
 
   const handleSubmit = useCallback(async () => {
-    const result = schema.safeParse({ message });
+    const result = schema.safeParse({ message, email: email.trim() });
     if (!result.success) {
-      setError(result.error.issues[0]?.message ?? "Validation error");
+      const issue = result.error.issues[0];
+      const text = issue?.message ?? "Validation error";
+      if (issue?.path[0] === "email") {
+        setEmailError(text);
+      } else {
+        setError(text);
+      }
       return;
     }
 
@@ -72,6 +93,7 @@ export function FeatureRequestDialog({
         message: result.data.message,
         language: navigator.language,
         deviceType: isMobile ? "Mobile" : "Desktop",
+        ...(result.data.email && { email: result.data.email }),
       });
 
       if (!response.success) {
@@ -87,7 +109,7 @@ export function FeatureRequestDialog({
       setState("idle");
       setError(t("sendFailed"));
     }
-  }, [message, addRequest, schema, t]);
+  }, [message, email, addRequest, schema, t]);
 
   useEffect(() => {
     if (state !== "success") {
@@ -106,7 +128,7 @@ export function FeatureRequestDialog({
       {trigger ? (
         <DialogTrigger render={trigger} />
       ) : (
-        <DialogTrigger render={<Button size="sm" variant="outline" />}>
+        <DialogTrigger render={<Button size="sm" variant="ghost" />}>
           <IconBulb />
           {t("trigger")}
         </DialogTrigger>
@@ -158,10 +180,39 @@ export function FeatureRequestDialog({
                 </span>
               </div>
             </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="feature-request-email">{t("emailLabel")}</Label>
+              <Input
+                aria-describedby="feature-request-email-hint"
+                aria-invalid={emailError ? true : undefined}
+                autoComplete="email"
+                disabled={state === "submitting"}
+                id="feature-request-email"
+                maxLength={254}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (emailError) {
+                    setEmailError(null);
+                  }
+                }}
+                placeholder="name@example.com"
+                type="email"
+                value={email}
+              />
+              <p
+                className={cn(
+                  "text-xs",
+                  emailError ? "text-destructive" : "text-muted-foreground"
+                )}
+                id="feature-request-email-hint"
+              >
+                {emailError ?? t("emailHint")}
+              </p>
+            </div>
             <PreviousRequests />
 
             <div className="flex gap-2 pt-2">
-              <DialogClose render={<Button size="sm" variant="outline" />}>
+              <DialogClose render={<Button size="sm" variant="ghost" />}>
                 {t("close")}
               </DialogClose>
               <Button

@@ -7,10 +7,10 @@ import {
   IconLoader2,
 } from "@tabler/icons-react";
 import { track } from "@vercel/analytics";
-import { CurrencyCode } from "bysquare";
+import { CurrencyCode } from "bysquare/pay";
 import { electronicFormatIBAN, isValidIBAN } from "ibantools";
 import { useTranslations } from "next-intl";
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PageSpinner } from "@/components/page-spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -47,28 +47,6 @@ function buildExpectedPayload(data: PaymentFormData): string | null {
   return payload;
 }
 
-function scanStateKey(state: ScanState): string {
-  return state.status === "at-risk" ? `at-risk:${state.reason}` : state.status;
-}
-
-function trackScanTransition(
-  state: ScanState,
-  lastKey: { current: string | null }
-): void {
-  if (state.status !== "ok" && state.status !== "at-risk") {
-    return;
-  }
-  const key = scanStateKey(state);
-  if (lastKey.current === key) {
-    return;
-  }
-  lastKey.current = key;
-  track("qr_scannability_checked", {
-    ok: state.status === "ok",
-    reason: state.status === "at-risk" ? state.reason : null,
-  });
-}
-
 async function runRenderAndScan(
   payment: PaymentFormData,
   config: CustomizerConfig
@@ -93,7 +71,6 @@ export function StudioPreview({ config, payment }: Props) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [scan, setScan] = useState<ScanState>({ status: "idle" });
-  const lastTrackedKey = useRef<string | null>(null);
 
   useEffect(() => {
     if (!deferredPayment) {
@@ -114,7 +91,6 @@ export function StudioPreview({ config, payment }: Props) {
         setDataUrl(url);
         setError(null);
         setScan(nextScan);
-        trackScanTransition(nextScan, lastTrackedKey);
       })
       .catch((err) => {
         if (cancelled) {
@@ -153,24 +129,24 @@ export function StudioPreview({ config, payment }: Props) {
   };
 
   return (
-    <div className="flex flex-col gap-3 border border-border bg-card p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+    <div className="flex flex-col border border-border bg-card">
+      <div className="flex h-10 items-center justify-between gap-0 border-b">
+        <div className="flex h-full grow items-center gap-2 border-r px-4">
           <h2 className="font-medium text-sm">{t("preview")}</h2>
           <ScanBadge state={scan} />
         </div>
         <Button
+          className="h-10"
           disabled={!dataUrl}
           onClick={handleDownload}
-          size="sm"
-          variant="outline"
+          variant="ghost"
         >
           <IconDownload />
           {t("downloadPng")}
         </Button>
       </div>
 
-      <div className="flex aspect-square w-full items-center justify-center border border-border bg-muted">
+      <div className="m-4 flex aspect-square w-auto items-center justify-center border border-border bg-muted">
         {dataUrl && (
           // biome-ignore lint/performance/noImgElement: data URI from in-memory canvas
           // biome-ignore lint/correctness/useImageSize: size set via className
@@ -191,7 +167,7 @@ export function StudioPreview({ config, payment }: Props) {
       </div>
 
       {error && (
-        <Alert>
+        <Alert className="mx-4 mb-4 w-auto">
           <IconAlertTriangle className="size-5" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>

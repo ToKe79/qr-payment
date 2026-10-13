@@ -1,9 +1,8 @@
 "use client";
 
 import { IconAlertTriangle, IconInfoCircle } from "@tabler/icons-react";
-import { track } from "@vercel/analytics";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -59,7 +58,7 @@ export function CustomizerControls({
 
   return (
     <Accordion
-      className={cn("flex flex-col gap-3", className)}
+      className={cn("flex flex-col", className)}
       defaultValue={defaultOpen}
       multiple
     >
@@ -232,11 +231,8 @@ interface SectionProps {
 
 function Section({ value, title, chip, children }: SectionProps) {
   return (
-    <AccordionItem
-      className="border border-border not-last:border-b bg-card"
-      value={value}
-    >
-      <AccordionTrigger className="px-4">
+    <AccordionItem className="border-b bg-card" value={value}>
+      <AccordionTrigger className="h-12 px-4 py-0">
         <span className="flex flex-1 items-center justify-between gap-3">
           <span className="font-medium text-sm">{title}</span>
           <span className="flex items-center gap-2 text-muted-foreground text-xs">
@@ -244,7 +240,7 @@ function Section({ value, title, chip, children }: SectionProps) {
           </span>
         </span>
       </AccordionTrigger>
-      <AccordionContent className="flex flex-col gap-3 px-4 text-foreground">
+      <AccordionContent className="flex flex-col gap-3 px-4 pb-4 text-foreground">
         {children}
       </AccordionContent>
     </AccordionItem>
@@ -340,20 +336,6 @@ function posLabel(p: OverlayPosition, t: (key: string) => string): string {
 
 function GuardrailWarnings({ guardrails }: { guardrails: Guardrail[] }) {
   const tBranding = useTranslations();
-  const trackedKeys = useRef<Set<string>>(new Set());
-
-  useEffect(() => {
-    for (const g of guardrails) {
-      if (trackedKeys.current.has(g.key)) {
-        continue;
-      }
-      trackedKeys.current.add(g.key);
-      track("guardrail_warning_shown", {
-        key: g.key,
-        severity: g.severity,
-      });
-    }
-  }, [guardrails]);
 
   if (guardrails.length === 0) {
     return null;
