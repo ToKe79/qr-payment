@@ -1,3 +1,9 @@
+Forked from [RomanDenysov/qr-payment](https://github.com/RomanDenysov/qr-payment).
+
+Published at [qr.vudiq.sk](https://qr.vudiq.sk).
+
+Deploy status: [![Netlify Status](https://api.netlify.com/api/v1/badges/03e1643f-61cc-4193-89c2-831da6c45be2/deploy-status)](https://app.netlify.com/projects/qr-vudiq-sk/deploys)
+
 ## QR Platby
 
 Free online generator of payment QR codes: PAY by square (Slovakia), SPAYD / QR Platba (Czechia) and EPC QR (SEPA). Live at [qr-platby.com](https://qr-platby.com).
