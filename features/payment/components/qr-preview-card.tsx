@@ -9,7 +9,7 @@ import {
 import { track } from "@vercel/analytics";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -22,9 +22,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ExportFormatMenu } from "@/features/customizer/components/export-format-menu";
 import { renderCustomizerQR } from "@/features/customizer/renderer";
 import { useCustomizerConfig } from "@/features/customizer/store";
 import { DOWNLOAD_SIZE_PX } from "@/features/customizer/types";
+import { OkfakturaQrHint } from "@/features/promo/components/okfaktura-qr-hint";
 import { formatAmount, maskIban } from "@/lib/utils";
 import { InvalidIBANError } from "../qr-generator";
 import { resizePngDataUrl, resizePngToBlob } from "../resize-qr";
@@ -96,6 +98,7 @@ export function QRPreviewCard() {
   const customizer = useCustomizerConfig();
   const t = useTranslations("QRPreview");
   const tBranding = useTranslations("Branding");
+  const locale = useLocale();
   const cardRef = useRef<HTMLDivElement>(null);
   const prevQrRef = useRef<string | undefined>(undefined);
   const [downloadPending, startDownload] = useTransition();
@@ -275,15 +278,24 @@ export function QRPreviewCard() {
       </CardContent>
       {current?.qrDataUrl ? (
         <CardFooter className="mt-auto grid grid-cols-2 divide-x divide-border p-0 sm:flex">
-          <Button
-            className="col-span-2 h-12 sm:col-span-1 sm:flex-1"
-            isPending={downloadPending}
-            onClick={handleDownload}
-            variant="ghost"
-          >
-            {downloadPending ? null : <IconDownload />}
-            {t("download")}
-          </Button>
+          <div className="col-span-2 flex divide-x divide-border sm:col-span-1 sm:flex-1">
+            <Button
+              className="h-12 flex-1"
+              isPending={downloadPending}
+              onClick={handleDownload}
+              variant="ghost"
+            >
+              {downloadPending ? null : <IconDownload />}
+              {t("download")}
+            </Button>
+            <ExportFormatMenu
+              className="h-12 w-12"
+              config={customizer}
+              filePrefix="qr-payment"
+              payment={current}
+              source="home"
+            />
+          </div>
           <ShareLinkDialog payment={current} />
           <Button
             className="h-12 sm:flex-1"
@@ -304,6 +316,11 @@ export function QRPreviewCard() {
             {t("copy")}
           </Button>
         </CardFooter>
+      ) : null}
+      {current?.qrDataUrl &&
+      locale === "sk" &&
+      (current.format ?? "bysquare") === "bysquare" ? (
+        <OkfakturaQrHint />
       ) : null}
     </Card>
   );

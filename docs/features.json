@@ -154,6 +154,15 @@
       "description": "Download QR code as PNG, copy to clipboard, or share via system share menu."
     },
     {
+      "name": "QR SVG & Print PDF Export",
+      "source": "features/customizer/export-vector.ts",
+      "route": null,
+      "category": "export",
+      "i18nNamespace": "QRPreview",
+      "clientSide": true,
+      "description": "Export the customized QR code as vector SVG or as an A4 PDF for print (QR at 90 mm with IBAN, amount and symbols). Menu next to Download on the home preview and in /studio."
+    },
+    {
       "name": "Bulk ZIP Export",
       "source": "features/bulk/export-zip.ts",
       "route": null,
@@ -314,6 +323,15 @@
       "i18nNamespace": "Reader",
       "clientSide": true,
       "description": "Decodes a payment QR from an uploaded, dropped or pasted image (jsQR) or from its text, for PAY by square, SPAYD and EPC. Shows the payment with warnings (bad IBAN checksum, several payments, standing order, EPC structured reference, unsupported currency) and opens it in the generator form. Runs in the browser only. Localized slugs: /cs/ctecka-qr-plateb, /en/payment-qr-code-reader."
+    },
+    {
+      "name": "okfaktura Promo",
+      "source": "features/promo/",
+      "route": "/",
+      "category": "ui",
+      "i18nNamespace": "Okfaktura",
+      "clientSide": false,
+      "description": "Promotes okfaktura, the author's invoicing app with PAY by square PDF invoices. A one-line link under a generated PAY by square QR code, and a homepage banner in the okfaktura brand color with grain, one question per audience (contractors, agencies). Both show on the sk locale only, since okfaktura and its site are Slovak only. Links carry UTM parameters."
     },
     {
       "name": "Community Banner",

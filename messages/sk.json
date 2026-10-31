@@ -165,6 +165,15 @@
       "document": "Dokument",
       "print": "Tlač",
       "help": "Malé (128px) na obrazovku, Štandard (256px) všeobecné použitie, Dokument (512px) do faktúr, Tlač (1024px) pre fyzické tlačoviny."
+    },
+    "export": {
+      "menuAria": "Ďalšie formáty na stiahnutie",
+      "svg": "SVG",
+      "svgHint": "Vektor, ľubovoľná veľkosť",
+      "pdf": "PDF na tlač",
+      "pdfHint": "Strana A4 s údajmi platby",
+      "done": "QR kód exportovaný",
+      "failed": "Export QR kódu zlyhal"
     }
   },
   "History": {
@@ -774,6 +783,28 @@
       "step3Text": "Kliknite na tlačidlo Vygenerovať a získajte hotový QR kód.",
       "step4Name": "Naskenujte bankovou aplikáciou",
       "step4Text": "Otvorte vašu bankovú aplikáciu a naskenujte QR kód na potvrdenie platby."
+    }
+  },
+  "Okfaktura": {
+    "hint": {
+      "title": "Potrebujete faktúru s týmto QR kódom?",
+      "text": "okfaktura vystaví PDF faktúru s PAY by square. Zadarmo do 5 odberateľov."
+    },
+    "banner": {
+      "eyebrow": "Od autora QR Platby",
+      "title": "Faktúry s QR kódom robí okfaktura",
+      "description": "Fakturácia pre živnostníkov, s. r. o. aj agentúry. Faktúra v PDF s PAY by square, správnym číslom a DPH.",
+      "questions": {
+        "contractors": {
+          "question": "Potrebujete faktúru s QR kódom?",
+          "answer": "okfaktura vystaví PDF faktúru s PAY by square. Vlastným odberateľom fakturujete zadarmo do 5 odberateľov."
+        },
+        "agencies": {
+          "question": "Fakturujú vám dodávatelia každý mesiac?",
+          "answer": "okfaktura pripraví ich faktúry zo schválenej práce, oni ich len potvrdia."
+        }
+      },
+      "cta": "Prejsť na okfaktura.sk"
     }
   }
 }
